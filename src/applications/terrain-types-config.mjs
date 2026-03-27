@@ -417,6 +417,14 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 			<p class="hint">${l("TERRAINHEIGHTTOOLS.DefaultElevation.Hint")}</p>
 		</div>
+
+		<div class="form-group">
+			<label>${l("TERRAINHEIGHTTOOLS.MovementPenalty.Name")}</label>
+			<div class="form-fields">
+				<input type="number" name="${index}.movementPenalty" value=${terrainType.movementPenalty} min="0" step="1">
+			</div>
+			<p class="hint">${l("TERRAINHEIGHTTOOLS.MovementPenalty.Hint")}</p>
+		</div>
 	`;
 
 	// -------- //

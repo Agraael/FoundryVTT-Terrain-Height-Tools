@@ -12,8 +12,13 @@ function getTokenHeight(tokenDoc) {
 	switch (game.system.id) {
 		// In Lancer, size 0.5 tokens still take up 1 full grid size, so the default implementation would cause them to
 		// appear as size 1 instead. Instead, we can access the size property of the actor.
-		case "lancer":
+		case "lancer": {
+			let tokenHeight = tokenDoc.actor?.prototypeToken?.flags["wall-height"]?.tokenHeight;
+			if (tokenHeight != null) {
+				return Math.floor(tokenHeight * 2) / 2;
+			}
 			return tokenDoc.actor?.system?.size ?? tokenDoc.width;
+		}
 
 		// Be default, we just use the token's width dimension as it's vertical height.
 		default:
