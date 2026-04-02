@@ -212,8 +212,8 @@ export class TerrainShapeGraphic extends PIXI.Container {
 
 			if (xAnim !== 0 || yAnim !== 0) {
 				const tickerFn = deltaTime => {
-					sprite.tilePosition.x += ((xAnim / canvas.app.ticker.maxFPS) * deltaTime) % (texture.width * xScale);
-					sprite.tilePosition.y += ((yAnim / canvas.app.ticker.maxFPS) * deltaTime) % (texture.height * yScale);
+					sprite.tilePosition.x += (xAnim / 60) * deltaTime;
+sprite.tilePosition.y += (yAnim / 60) * deltaTime;
 				};
 				canvas.app.ticker.add(tickerFn);
 				this.#tickerFns.push(tickerFn);
