@@ -33,6 +33,13 @@
 				"id": "lib-wrapper",
 				"type": "module"
 			}
+		],
+		"recommends": [
+			{
+				"id": "_CodeMirror",
+				"type": "module",
+				"reason": "Provides syntax highlighting in the inline JavaScript editor for terrain triggers."
+			}
 		]
 	},
 	"socket": true,

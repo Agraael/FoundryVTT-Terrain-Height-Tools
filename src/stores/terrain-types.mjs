@@ -4,6 +4,20 @@ import { flags, lineTypes, moduleName, settingNames } from "../consts.mjs";
 import { alphaToHex } from "../utils/misc-utils.mjs";
 
 /**
+ * @typedef {object} TerrainTrigger
+ * @property {string} id
+ * @property {boolean} enabled
+ * @property {keyof typeof import("../consts.mjs").triggerEventModes} mode
+ * @property {keyof typeof import("../consts.mjs").triggerElevationRules} elevationRule
+ * @property {keyof typeof import("../consts.mjs").triggerTargetTokens} targetTokens
+ * @property {keyof typeof import("../consts.mjs").triggerActionTypes} actionType
+ * @property {string} actionMacroId
+ * @property {string} actionCode
+ * @property {string} actionEffectId
+ * @property {boolean} actionEffectOverlay
+ */
+
+/**
  * @typedef {object} TerrainType
  * @property {string} id
  * @property {string} name
@@ -41,6 +55,7 @@ import { alphaToHex } from "../utils/misc-utils.mjs";
  * @property {number | null} defaultHeight
  * @property {number | null} defaultElevation
  * @property {number} movementPenalty
+ * @property {TerrainTrigger[]} triggers
  * @property {Record<string, any>} flags
  */
 
@@ -100,7 +115,24 @@ export function createDefaultTerrainType(id = undefined) {
 		defaultHeight: null,
 		defaultElevation: null,
 		movementPenalty: 0,
+		triggers: [],
 		flags: {}
+	};
+}
+
+/** @returns {TerrainTrigger} */
+export function createDefaultTrigger() {
+	return {
+		id: foundry.utils.randomID(),
+		enabled: true,
+		mode: "ENTER",
+		elevationRule: "INSIDE_VOLUME_INCLUSIVE",
+		targetTokens: "ALL",
+		actionType: "none",
+		actionMacroId: "",
+		actionCode: "",
+		actionEffectId: "",
+		actionEffectOverlay: false
 	};
 }
 

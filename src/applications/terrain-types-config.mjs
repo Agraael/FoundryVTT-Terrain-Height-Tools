@@ -1,13 +1,13 @@
 /** @import { Signal } from "@preact/signals-core" */
 /** @import { TerrainType } from "../stores/terrain-types.mjs" */
 import { html } from "@lit-labs/preact-signals";
-import { computed, signal } from "@preact/signals-core";
+import { computed, effect, signal } from "@preact/signals-core";
 import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
-import { lineTypes, moduleName, settingNames } from "../consts.mjs";
-import { createDefaultTerrainType, terrainTypes$ } from "../stores/terrain-types.mjs";
+import { lineTypes, moduleName, settingNames, triggerActionTypes, triggerElevationRules, triggerEventModes, triggerTargetTokens } from "../consts.mjs";
+import { createDefaultTerrainType, createDefaultTrigger, terrainTypes$ } from "../stores/terrain-types.mjs";
 import { colorPicker } from "./directives/color-picker.mjs";
 import { rangePicker } from "./directives/range-picker.mjs";
 import { selectOptions } from "./directives/select-options.mjs";
@@ -20,6 +20,13 @@ const { ApplicationV2, DialogV2 } = foundry.applications.api;
 
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
+
+/** Returns token-factions teams when the module is active and Advanced Factions colouring is on. */
+function getAdvancedFactionTeams() {
+	if (!game.modules.get("token-factions")?.active) return [];
+	if (game.settings.get("token-factions", "color-from") !== "advanced-factions") return [];
+	return game.settings.get("token-factions", "team-setup") || [];
+}
 
 export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 
@@ -51,9 +58,11 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 
 	#selectedTab = signal("lines");
 
-	constructor() {
-		super();
-	}
+	/** @type {Map<string, any>} CodeMirror instances keyed by trigger ID. */
+	#codeMirrors = new Map();
+
+	/** @type {(() => void) | undefined} Disposer for the tab-change effect. */
+	#tabEffectDisposer;
 
 	/** @override */
 	_renderHTML() {
@@ -385,6 +394,128 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	`;
 
 	/** @type {UiPartRenderer} */
+	static _renderTriggersTab = ({ terrainType, index }) => {
+		const triggers = terrainType.triggers ?? [];
+		return html`
+			<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.TabHint")}</p>
+			${repeat(triggers, t => t.id, (trigger, triggerIndex) => html`
+				<div class="tht-trigger-row" data-trigger-id=${trigger.id}>
+					<input type="hidden" name="${index}.triggers.${triggerIndex}.id" value=${trigger.id}>
+
+					<div class="form-group">
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Enabled")}</label>
+						<div class="form-fields">
+							<input type="checkbox" name="${index}.triggers.${triggerIndex}.enabled" .checked=${trigger.enabled}>
+							<button
+								type="button"
+								class="tht-trigger-delete"
+								title=${l("Delete")}
+								@click=${e => e.currentTarget.dispatchEvent(new CustomEvent("tht-trigger-delete", { bubbles: true, detail: { terrainTypeId: terrainType.id, triggerId: trigger.id } }))}
+							><i class="fas fa-trash"></i></button>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Mode.Label")}</label>
+						<div class="form-fields">
+							<select name="${index}.triggers.${triggerIndex}.mode">
+								${selectOptions(triggerEventModes, { selected: trigger.mode })}
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Elevation.Label")}</label>
+						<div class="form-fields">
+							<select
+								name="${index}.triggers.${triggerIndex}.elevationRule"
+								?disabled=${!terrainType.usesHeight}
+							>
+								${selectOptions(triggerElevationRules, {
+									selected: terrainType.usesHeight ? trigger.elevationRule : "ANY_ELEVATION"
+								})}
+							</select>
+						</div>
+						${!terrainType.usesHeight ? html`<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.Elevation.ZoneHint")}</p>` : ""}
+					</div>
+
+					<div class="form-group">
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Target.Label")}</label>
+						<div class="form-fields">
+							<select name="${index}.triggers.${triggerIndex}.targetTokens">
+								${selectOptions(triggerTargetTokens, { selected: trigger.targetTokens })}
+								${getAdvancedFactionTeams().map(team => html`
+									<option value=${`TEAM:${team.id}`} ?selected=${trigger.targetTokens === `TEAM:${team.id}`}>${team.name}</option>
+								`)}
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Action.Label")}</label>
+						<div class="form-fields">
+							<select name="${index}.triggers.${triggerIndex}.actionType">
+								${selectOptions(triggerActionTypes, { selected: trigger.actionType })}
+							</select>
+						</div>
+					</div>
+
+					<div class=${classMap({ "form-group": true, "hidden": trigger.actionType !== "macro" })}>
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Action.MacroId")}</label>
+						<div class="form-fields">
+							<input type="text" name="${index}.triggers.${triggerIndex}.actionMacroId" value=${trigger.actionMacroId ?? ""} placeholder="Macro UUID or ID">
+						</div>
+					</div>
+
+					<div class=${classMap({ "form-group": true, "hidden": trigger.actionType !== "effect" })}>
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Action.EffectId")}</label>
+						<div class="form-fields">
+							<select name="${index}.triggers.${triggerIndex}.actionEffectId">
+								<option value="" ?selected=${!trigger.actionEffectId}>${l("TERRAINHEIGHTTOOLS.Trigger.Action.None")}</option>
+								${(CONFIG.statusEffects ?? []).map(e => html`
+									<option value=${e.id} ?selected=${trigger.actionEffectId === e.id}>${l(e.name ?? e.label ?? e.id)}</option>
+								`)}
+							</select>
+						</div>
+						<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.Action.EffectIdHint")}</p>
+					</div>
+
+					<div class=${classMap({ "form-group": true, "hidden": trigger.actionType !== "effect" })}>
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Action.EffectOverlay")}</label>
+						<div class="form-fields">
+							<input type="checkbox" name="${index}.triggers.${triggerIndex}.actionEffectOverlay" .checked=${!!trigger.actionEffectOverlay}>
+						</div>
+					</div>
+
+					<div class=${classMap({ "form-group": true, "tht-trigger-code-group": true, "hidden": trigger.actionType !== "code" })}>
+						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Action.Code")}</label>
+						<div class="tht-trigger-code-wrap">
+							<textarea
+								class="tht-trigger-code"
+								name="${index}.triggers.${triggerIndex}.actionCode"
+								rows="8"
+								data-trigger-id=${trigger.id}
+								spellcheck="false"
+							>${trigger.actionCode ?? ""}</textarea>
+						</div>
+						<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.Action.CodeHint")}</p>
+					</div>
+
+					<hr/>
+				</div>
+			`)}
+
+			<button
+				type="button"
+				@click=${e => e.currentTarget.dispatchEvent(new CustomEvent("tht-trigger-add", { bubbles: true, detail: { terrainTypeId: terrainType.id } }))}
+			>
+				<i class="fas fa-plus"></i>
+				<label>${l("TERRAINHEIGHTTOOLS.Trigger.Add")}</label>
+			</button>
+		`;
+	};
+
+	/** @type {UiPartRenderer} */
 	static _renderOtherTab = ({ terrainType, index }) => html`
 		<div class="form-group">
 			<label for="terrainType${index}_isZone">${l("TERRAINHEIGHTTOOLS.IsZone.Name")}</label>
@@ -496,6 +627,114 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	#deleteTerrainType(terrainTypeId) {
 		this.#terrainTypes.value = this.#terrainTypes.value.filter(t => t.id !== terrainTypeId);
 		this.render();
+	}
+
+	/** @param {string} terrainTypeId */
+	#addTrigger(terrainTypeId) {
+		this.#syncFromForm();
+		this.#terrainTypes.value = this.#terrainTypes.value.map(t => t.id === terrainTypeId
+			? { ...t, triggers: [...t.triggers ?? [], createDefaultTrigger()] }
+			: t);
+		this.render();
+	}
+
+	/** @param {string} terrainTypeId @param {string} triggerId */
+	#deleteTrigger(terrainTypeId, triggerId) {
+		this.#syncFromForm();
+		this.#terrainTypes.value = this.#terrainTypes.value.map(t => t.id === terrainTypeId
+			? { ...t, triggers: (t.triggers ?? []).filter(tr => tr.id !== triggerId) }
+			: t);
+		this.render();
+	}
+
+	#syncFromForm() {
+		if (!this.element) return;
+		for (const cm of this.#codeMirrors.values()) cm.save();
+		const formData = new FormDataExtended(this.element);
+		this.#terrainTypes.value = this.#getTerrainTypesFromForm(formData);
+	}
+
+	/** @override */
+	_onRender(context, options) {
+		super._onRender?.(context, options);
+		this.#wireTriggerEvents();
+		this.#attachCodeMirrors();
+		// Tab switches re-patch the DOM via lit signals without re-firing _onRender, so we have
+		// to listen for them directly to re-attach CodeMirror to newly-visible textareas.
+		if (!this.#tabEffectDisposer) {
+			let prev = this.#selectedTab.peek();
+			this.#tabEffectDisposer = effect(() => {
+				const next = this.#selectedTab.value;
+				if (next === prev) return;
+				prev = next;
+				queueMicrotask(() => this.#attachCodeMirrors());
+			});
+		}
+	}
+
+	/** @override */
+	close(...args) {
+		this.#tabEffectDisposer?.();
+		this.#tabEffectDisposer = undefined;
+		for (const cm of this.#codeMirrors.values()) cm.toTextArea();
+		this.#codeMirrors.clear();
+		return super.close(...args);
+	}
+
+	#wireTriggerEvents() {
+		const root = this.element;
+		if (!root || root._thtTriggerWired) return;
+		root._thtTriggerWired = true;
+		root.addEventListener("tht-trigger-add", e => {
+			e.stopPropagation();
+			this.#addTrigger(e.detail.terrainTypeId);
+		});
+		root.addEventListener("tht-trigger-delete", e => {
+			e.stopPropagation();
+			this.#deleteTrigger(e.detail.terrainTypeId, e.detail.triggerId);
+		});
+	}
+
+	#attachCodeMirrors() {
+		const CM = globalThis.CodeMirror;
+		if (!CM) return;
+		const root = this.element;
+		if (!root) return;
+
+		for (const [triggerId, cm] of this.#codeMirrors) {
+			if (!root.contains(cm.getTextArea())) {
+				cm.toTextArea();
+				this.#codeMirrors.delete(triggerId);
+			}
+		}
+
+		const textareas = root.querySelectorAll("textarea.tht-trigger-code");
+		for (const textarea of textareas) {
+			const triggerId = textarea.dataset.triggerId;
+			if (!triggerId) continue;
+			if (this.#codeMirrors.has(triggerId)) continue;
+			// CM measures 0 width inside a hidden ancestor; defer until the textarea is visible.
+			if (textarea.offsetParent === null) continue;
+			const cm = CM.fromTextArea(textarea, {
+				mode: "javascript",
+				theme: "monokai",
+				lineNumbers: true,
+				lineWrapping: true,
+				indentUnit: 2,
+				tabSize: 2,
+				viewportMargin: Infinity
+			});
+			this.#codeMirrors.set(triggerId, cm);
+			cm.on("blur", () => {
+				cm.save();
+				textarea.dispatchEvent(new Event("change", { bubbles: true }));
+			});
+			requestAnimationFrame(() => cm.refresh());
+		}
+
+		for (const cm of this.#codeMirrors.values()) {
+			if (cm.getWrapperElement().offsetParent !== null) cm.refresh();
+		}
 	}
 
 	// ------------- //
@@ -655,6 +894,15 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		for (const terrainType of terrainTypes) {
 			terrainType.usesHeight = !terrainType.isZone;
 			delete terrainType.isZone;
+
+			// expandObject keys triggers as { "0": {...} }; flatten back to an array.
+			if (terrainType.triggers && !Array.isArray(terrainType.triggers)) {
+				terrainType.triggers = Object.entries(terrainType.triggers)
+					.sort((a, b) => a[0] - b[0])
+					.map(([, value]) => value);
+			} else if (!terrainType.triggers) {
+				terrainType.triggers = [];
+			}
 		}
 
 		return terrainTypes;
@@ -696,6 +944,11 @@ const configTabs = {
 		label: "DRAWING.TabText",
 		icon: "fas fa-font",
 		parts: [TerrainTypesConfig._renderLabelTab]
+	},
+	triggers: {
+		label: "TERRAINHEIGHTTOOLS.Trigger.Tab",
+		icon: "fas fa-bolt",
+		parts: [TerrainTypesConfig._renderTriggersTab]
 	},
 	other: {
 		label: "TERRAINHEIGHTTOOLS.Other",

@@ -177,6 +177,54 @@
 		"TextureOffset": "Texture Offset",
 		"TextureOffsetAnimation": "Texture Animation",
 		"TextureScale": "Texture Scale",
+		"Trigger": {
+			"Tab": "Triggers",
+			"TabHint": "Run a macro, inline script, or status effect when a token enters, leaves, or moves through this terrain.",
+			"Add": "Add Trigger",
+			"Enabled": "Enabled",
+			"Mode": {
+				"Label": "Event",
+				"Enter": "On Enter",
+				"Leave": "On Leave",
+				"EnterLeave": "On Enter & Leave",
+				"MoveInside": "On Move Inside",
+				"TurnStart": "Turn Start (combat)",
+				"TurnEnd": "Turn End (combat)",
+				"TurnStartEnd": "Turn Start & End (combat)",
+				"RoundStart": "Round Start (combat)",
+				"RoundEnd": "Round End (combat)",
+				"RoundStartEnd": "Round Start & End (combat)"
+			},
+			"Elevation": {
+				"Label": "Elevation Rule",
+				"InsideInclusive": "Inside Volume (inclusive top)",
+				"InsideHalfOpen": "Inside Volume (excluding top)",
+				"OnFloor": "On Floor (elevation == bottom)",
+				"Any": "Any Elevation",
+				"ZoneHint": "Zone terrain has no elevation; only Any Elevation applies."
+			},
+			"Target": {
+				"Label": "Target Tokens",
+				"All": "All",
+				"Friendly": "Friendly only",
+				"Hostile": "Hostile only",
+				"Neutral": "Neutral only",
+				"Secret": "Secret only",
+				"PlayerOwned": "Player-owned only"
+			},
+			"Action": {
+				"Label": "Action Type",
+				"None": "None",
+				"Macro": "Macro",
+				"Code": "JavaScript",
+				"Effect": "Status Effect",
+				"MacroId": "Macro UUID or ID",
+				"CodeHint": "Available scope: token, shape, terrainType, trigger, options, api",
+				"EffectId": "Status Effect",
+				"EffectIdHint": "Effect is added on Enter and removed on Leave (per the trigger event mode).",
+				"EffectOverlay": "Show as Overlay"
+			}
+		},
 		"TokenLineOfSightConfigHint": "Select two tokens to measure line of sight between them.",
 		"TokenLineOfSightConfigTitle": "Token LoS",
 		"TokenLineOfSightRelativeRayPosition": "Position of ray relative to the token. Currently: {current}",

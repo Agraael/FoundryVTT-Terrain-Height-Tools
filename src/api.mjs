@@ -12,6 +12,8 @@ import { terrainTypes$ } from "./stores/terrain-types.mjs";
 import { rectangleFromP1P2 } from "./utils/pixi-utils.mjs";
 import { calculateRaysBetweenTokensOrPoints } from "./utils/token-utils.mjs";
 
+export { getContainingTriggerMatches, isTokenInsideShape } from "./triggers/terrain-containment.mjs";
+
 export { registerCustomConfigUi as registerCustomTerrainTypeConfigUi } from "./applications/terrain-types-config.mjs";
 export { registerTerrainProvider, unregisterTerrainProvider } from "./stores/terrain-manager.mjs";
 

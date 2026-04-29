@@ -13,6 +13,8 @@ export const heightMapProviderId = `${moduleName}.heightMap`;
 
 export const updateTerrainHook = `${moduleName}.updateTerrain`;
 
+export const enterLeaveTerrainHook = `${moduleName}.enterLeaveTerrain`;
+
 export const terrainHeightEditorControlName = "terrain-height-tools-editor";
 
 // Number.EPSILON is too small for the tolerance when dealing with geometry since doing multiple arithmetic operations
@@ -114,4 +116,44 @@ export const terrainStackViewerDisplayModes = /** @type {const} */ ({
 	auto: "SETTINGS.TerrainStackViewerDisplayMode.Choice.Auto",
 	proportional: "SETTINGS.TerrainStackViewerDisplayMode.Choice.Proportional",
 	compact: "SETTINGS.TerrainStackViewerDisplayMode.Choice.Compact"
+});
+
+/** @enum {keyof typeof triggerEventModes} */
+export const triggerEventModes = /** @type {const} */ ({
+	ENTER: "TERRAINHEIGHTTOOLS.Trigger.Mode.Enter",
+	LEAVE: "TERRAINHEIGHTTOOLS.Trigger.Mode.Leave",
+	ENTER_LEAVE: "TERRAINHEIGHTTOOLS.Trigger.Mode.EnterLeave",
+	MOVE_INSIDE: "TERRAINHEIGHTTOOLS.Trigger.Mode.MoveInside",
+	TURN_START: "TERRAINHEIGHTTOOLS.Trigger.Mode.TurnStart",
+	TURN_END: "TERRAINHEIGHTTOOLS.Trigger.Mode.TurnEnd",
+	TURN_START_END: "TERRAINHEIGHTTOOLS.Trigger.Mode.TurnStartEnd",
+	ROUND_START: "TERRAINHEIGHTTOOLS.Trigger.Mode.RoundStart",
+	ROUND_END: "TERRAINHEIGHTTOOLS.Trigger.Mode.RoundEnd",
+	ROUND_START_END: "TERRAINHEIGHTTOOLS.Trigger.Mode.RoundStartEnd"
+});
+
+/** @enum {keyof typeof triggerElevationRules} */
+export const triggerElevationRules = /** @type {const} */ ({
+	INSIDE_VOLUME_INCLUSIVE: "TERRAINHEIGHTTOOLS.Trigger.Elevation.InsideInclusive",
+	INSIDE_VOLUME_HALF_OPEN: "TERRAINHEIGHTTOOLS.Trigger.Elevation.InsideHalfOpen",
+	ON_FLOOR: "TERRAINHEIGHTTOOLS.Trigger.Elevation.OnFloor",
+	ANY_ELEVATION: "TERRAINHEIGHTTOOLS.Trigger.Elevation.Any"
+});
+
+/** @enum {keyof typeof triggerActionTypes} */
+export const triggerActionTypes = /** @type {const} */ ({
+	none: "TERRAINHEIGHTTOOLS.Trigger.Action.None",
+	macro: "TERRAINHEIGHTTOOLS.Trigger.Action.Macro",
+	code: "TERRAINHEIGHTTOOLS.Trigger.Action.Code",
+	effect: "TERRAINHEIGHTTOOLS.Trigger.Action.Effect"
+});
+
+/** @enum {keyof typeof triggerTargetTokens} */
+export const triggerTargetTokens = /** @type {const} */ ({
+	ALL: "TERRAINHEIGHTTOOLS.Trigger.Target.All",
+	FRIENDLY: "TERRAINHEIGHTTOOLS.Trigger.Target.Friendly",
+	HOSTILE: "TERRAINHEIGHTTOOLS.Trigger.Target.Hostile",
+	NEUTRAL: "TERRAINHEIGHTTOOLS.Trigger.Target.Neutral",
+	SECRET: "TERRAINHEIGHTTOOLS.Trigger.Target.Secret",
+	PLAYER_OWNED: "TERRAINHEIGHTTOOLS.Trigger.Target.PlayerOwned"
 });

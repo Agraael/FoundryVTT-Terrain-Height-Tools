@@ -14,6 +14,7 @@ import * as canvasStore from "./stores/canvas.mjs";
 import { updateActiveControlTool } from "./stores/scene-controls.mjs";
 import { registerTerrainProvider } from "./stores/terrain-manager.mjs";
 import { loadTerrainTypes } from "./stores/terrain-types.mjs";
+import { registerTriggerDispatcher } from "./triggers/terrain-trigger-dispatcher.mjs";
 import { log } from "./utils/log.mjs";
 
 Hooks.once("init", init);
@@ -46,6 +47,8 @@ function init() {
 	registerKeybindings();
 
 	registerTerrainProvider(heightMapProviderId, heightMap);
+
+	registerTriggerDispatcher();
 
 	CONFIG.Canvas.layers.terrainHeightEditorLayer = { group: "interface", layerClass: TerrainHeightEditorLayer };
 	CONFIG.Canvas.layers.terrainHeightGraphicsLayer = { group: "interface", layerClass: TerrainHeightGraphicsLayer };
