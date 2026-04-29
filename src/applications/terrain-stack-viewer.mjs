@@ -220,7 +220,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		return html`${shapes.map(({ shape, terrainType, style: { color, borderColor, background } }) => html`
 			<div class="terrain-layer-block" style=${styleMap({ color, borderColor, background })}>
 				<p class="terrain-layer-block-title">${terrainType.name}</p>
-				<p class="terrain-layer-block-height">${f(shape.bottom)} → ${f(shape.bottom)} (${l("Height")} ${f(shape.height)})</p>
+				<p class="terrain-layer-block-height">${f(shape.bottom)} → ${f(shape.top)} (${l("Height")} ${f(shape.height)})</p>
 			</div>
 		`)}`;
 	}
