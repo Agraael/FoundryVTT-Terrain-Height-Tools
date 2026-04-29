@@ -7,7 +7,8 @@ import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { lineTypes, moduleName, settingNames, triggerActionTypes, triggerElevationRules, triggerEventModes, triggerTargetTokens } from "../consts.mjs";
-import { createDefaultTerrainType, createDefaultTrigger, terrainTypes$ } from "../stores/terrain-types.mjs";
+import { createDefaultTerrainType, createDefaultTrigger, previewTerrainTypes$, terrainTypes$ } from "../stores/terrain-types.mjs";
+import { abortableSubscribe } from "../utils/signal-utils.mjs";
 import { colorPicker } from "./directives/color-picker.mjs";
 import { rangePicker } from "./directives/range-picker.mjs";
 import { selectOptions } from "./directives/select-options.mjs";
@@ -156,6 +157,26 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 				</button>
 			</footer>
 		`;
+	}
+
+	_preFirstRender(options) {
+		super._preFirstRender(options);
+
+		// When user changes something, update the preview which will show on the scene
+		abortableSubscribe(
+			this.#terrainTypes,
+			foundry.utils.debounce(t => previewTerrainTypes$.value = t, 500),
+			this.closeSignal
+		);
+	}
+
+	close(options) {
+		previewTerrainTypes$.value = null;
+		this.#tabEffectDisposer?.();
+		this.#tabEffectDisposer = undefined;
+		for (const cm of this.#codeMirrors.values()) cm.toTextArea();
+		this.#codeMirrors.clear();
+		return super.close(options);
 	}
 
 	// ---- //
@@ -670,15 +691,6 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 				queueMicrotask(() => this.#attachCodeMirrors());
 			});
 		}
-	}
-
-	/** @override */
-	close(...args) {
-		this.#tabEffectDisposer?.();
-		this.#tabEffectDisposer = undefined;
-		for (const cm of this.#codeMirrors.values()) cm.toTextArea();
-		this.#codeMirrors.clear();
-		return super.close(...args);
 	}
 
 	#wireTriggerEvents() {
