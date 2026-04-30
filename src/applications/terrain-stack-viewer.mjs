@@ -154,7 +154,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			<!-- Zones -->
 			${zoneShapes.map(({ terrainType, style: { color, borderColor, background } }) => html`
 				<div class="terrain-layer-block" style=${styleMap({ color, borderColor, background })}>
-					<p class="terrain-layer-block-title">${terrainType.name}</p>
+					<p class="terrain-layer-block-title">${terrainType.name}${triggerIcon(terrainType)}</p>
 				</div>
 			`)}
 		`;
@@ -207,7 +207,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 						text-anchor="middle" dominant-baseline="middle"
 						fill=${style.color}
 					>
-						${terrainType.name}
+						${terrainType.name}${hasEnabledTrigger(terrainType) ? " ⚡" : ""}
 					</text>
 				`)}
 			</svg>
@@ -219,9 +219,19 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		const f = v => prettyFraction(toSceneUnits(v));
 		return html`${shapes.map(({ shape, terrainType, style: { color, borderColor, background } }) => html`
 			<div class="terrain-layer-block" style=${styleMap({ color, borderColor, background })}>
-				<p class="terrain-layer-block-title">${terrainType.name}</p>
+				<p class="terrain-layer-block-title">${terrainType.name}${triggerIcon(terrainType)}</p>
 				<p class="terrain-layer-block-height">${f(shape.bottom)} → ${f(shape.top)} (${l("Height")} ${f(shape.height)})</p>
 			</div>
 		`)}`;
 	}
+}
+
+function hasEnabledTrigger(terrainType) {
+	return (terrainType?.triggers ?? []).some(t => t.enabled);
+}
+
+function triggerIcon(terrainType) {
+	return hasEnabledTrigger(terrainType)
+		? html` <i class="fas fa-bolt" title=${game.i18n.localize("TERRAINHEIGHTTOOLS.Trigger.Tab")}></i>`
+		: "";
 }

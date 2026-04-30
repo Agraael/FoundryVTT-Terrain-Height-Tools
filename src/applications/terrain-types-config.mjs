@@ -725,8 +725,6 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			const triggerId = textarea.dataset.triggerId;
 			if (!triggerId) continue;
 			if (this.#codeMirrors.has(triggerId)) continue;
-			// CM measures 0 width inside a hidden ancestor; defer until the textarea is visible.
-			if (textarea.offsetParent === null) continue;
 			const cm = CM.fromTextArea(textarea, {
 				mode: "javascript",
 				theme: "monokai",
@@ -741,12 +739,14 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 				cm.save();
 				textarea.dispatchEvent(new Event("change", { bubbles: true }));
 			});
-			requestAnimationFrame(() => cm.refresh());
 		}
 
-		for (const cm of this.#codeMirrors.values()) {
-			if (cm.getWrapperElement().offsetParent !== null) cm.refresh();
-		}
+		// Refresh once layout settles so CMs attached while hidden get correct measurements.
+		requestAnimationFrame(() => {
+			for (const cm of this.#codeMirrors.values()) {
+				if (cm.getWrapperElement().offsetParent !== null) cm.refresh();
+			}
+		});
 	}
 
 	// ------------- //
