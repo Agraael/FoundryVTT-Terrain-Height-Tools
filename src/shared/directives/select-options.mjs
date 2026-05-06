@@ -3,16 +3,19 @@ import { html } from "lit";
 const noGroup = Symbol("noGroup");
 
 /**
+ * @template TOptions
+ * @template {TOptions extends Array<infer T0> ? T0 : TOptions extends { [k: string]: infer T1 } ? [string, T1] : never} TOption
  * Generates an array of template results based on the given options.
- * @param {Record<string, any> | any[]} options The options to display.
+ * @param {TOptions} options The options to display.
+ * - If given an array, by default looks for 'label', 'value' and 'group' properties on each array element.
+ * - If given an object, by default uses the keys as the option value and the object values as the display strings.
  * @param {Object} [opt]
- * @param {any} [opt.selected] The value of the selected option
- * @param {string | number | ((o: any) => any)} [opt.labelSelector] Property name or function to get the option's label.
- * @param {string | number | ((o: any) => any)} [opt.valueSelector] Property name or function to get the option's value.
- * @param {string | number | ((o: any) => any)} [opt.groupSelector] Property name or function to get the option's group.
+ * @param {any} [opt.selected] The value of the selected option.
+ * @param {keyof TOption | ((o: TOption) => any)} [opt.labelSelector] Property name or function to get the option's label.
+ * @param {keyof TOption | ((o: TOption) => any)} [opt.valueSelector] Property name or function to get the option's value.
+ * @param {keyof TOption | ((o: TOption) => any)} [opt.groupSelector] Property name or function to get the option's group.
  * @param {boolean} [opt.localize=true] If true, localizes labels. Default true.
  * @param {boolean} [opt.sort=false] If true, sorts options by their label (after localization). Default false.
- * @returns
  */
 export function selectOptions(options, { selected, labelSelector, valueSelector, groupSelector, localize = true, sort = false } = {}) {
 	if (Array.isArray(options)) {
