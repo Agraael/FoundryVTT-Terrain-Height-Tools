@@ -21,6 +21,30 @@ export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
 
 	static submitIcon = "fas fa-arrow-turn-right";
 
+	/** @type {Set<TerrainShape>} */
+	#convertedShapes = new Set();
+
+	/** @type {PIXI.Graphics | null} */
+	#doneOverlay = null;
+
+	constructor() {
+		super();
+		this.#doneOverlay = new PIXI.Graphics();
+		this.#doneOverlay.eventMode = "none";
+		canvas.controls.addChild(this.#doneOverlay);
+	}
+
+	/** @override */
+	_cleanup() {
+		super._cleanup();
+		this.#convertedShapes.clear();
+		if (this.#doneOverlay) {
+			this.#doneOverlay.parent?.removeChild(this.#doneOverlay);
+			this.#doneOverlay.destroy({ children: true });
+			this.#doneOverlay = null;
+		}
+	}
+
 	/**
 	 * @param {TerrainShape} shape
 	 * @override
@@ -128,10 +152,60 @@ export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
 				})));
 		}
 
-		if (deleteAfter)
+		if (deleteAfter) {
 			await heightMap.eraseShape(shape);
+		} else {
+			// Persistent visual mark so the user can see which shapes have already been converted in this tool session.
+			this.#convertedShapes.add(shape);
+			this.#redrawDoneOverlay();
+		}
 
 		// Notify user, because it may not be obvious that it's worked.
 		ui.notifications.info(game.i18n.localize("TERRAINHEIGHTTOOLS.NotifyShapeConversionComplete"));
+	}
+
+	#redrawDoneOverlay() {
+		const g = this.#doneOverlay;
+		if (!g) return;
+		g.clear();
+		for (const shape of this.#convertedShapes) {
+			ConvertShapeEditorTool.#drawDoneMarker(g, shape);
+		}
+	}
+
+	/**
+	 * @param {PIXI.Graphics} g
+	 * @param {TerrainShape} shape
+	 */
+	static #drawDoneMarker(g, shape) {
+		const outline = shape.polygon.vertices.flatMap(v => [v.x, v.y]);
+
+		// Tinted polygon overlay (with holes punched out)
+		g.lineStyle({ width: 4, color: 0x00cc00, alpha: 0.95, alignment: 0.5 });
+		g.beginFill(0x00ff00, 0.18);
+		g.drawPolygon(outline);
+		for (const hole of shape.holes) {
+			g.beginHole();
+			g.drawPolygon(hole.vertices.flatMap(v => [v.x, v.y]));
+			g.endHole();
+		}
+		g.endFill();
+
+		// Centered checkmark badge
+		const { x1, y1, w, h } = shape.polygon.boundingBox;
+		const cx = x1 + w / 2;
+		const cy = y1 + h / 2;
+		const r = Math.max(8, Math.min(w, h, canvas.grid.size) * 0.25);
+
+		g.lineStyle(0);
+		g.beginFill(0x000000, 0.55);
+		g.drawCircle(cx, cy, r);
+		g.endFill();
+
+		const s = r * 0.7;
+		g.lineStyle({ width: Math.max(2, r * 0.22), color: 0xffffff, alpha: 1, cap: PIXI.LINE_CAP.ROUND, join: PIXI.LINE_JOIN.ROUND });
+		g.moveTo(cx - s * 0.55, cy + s * 0.05);
+		g.lineTo(cx - s * 0.1, cy + s * 0.45);
+		g.lineTo(cx + s * 0.55, cy - s * 0.4);
 	}
 }
