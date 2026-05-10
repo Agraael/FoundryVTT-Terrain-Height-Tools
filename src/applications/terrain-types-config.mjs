@@ -7,12 +7,12 @@ import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { when } from "lit/directives/when.js";
-import { moduleName, settingNames, triggerActionTypes, triggerElevationRules, triggerEventModes, triggerTargetTokens } from "../consts.mjs";
+import { moduleName, settingNames, triggerActionTypes, triggerElevationRules, triggerEventModes, triggerTargetTokens, wallHeightModuleName } from "../consts.mjs";
 import { LINE_TYPES } from "../shared/consts.mjs";
 import { selectOptions } from "../shared/directives/select-options.mjs";
 import "../shared/elements/color-animation-editor/color-animation-editor.mjs";
 import { ContextMenu } from "../shared/elements/context-menu/context-menu.mjs";
-import { createDefaultTerrainType, createDefaultTrigger, previewTerrainTypes$, terrainTypes$ } from "../stores/terrain-types.mjs";
+import { createDefaultAutoGenerateWalls, createDefaultTerrainType, createDefaultTrigger, previewTerrainTypes$, terrainTypes$ } from "../stores/terrain-types.mjs";
 import { abortableSubscribe } from "../utils/signal-utils.mjs";
 import { colorPicker } from "./directives/color-picker.mjs";
 import { rangePicker } from "./directives/range-picker.mjs";
@@ -699,6 +699,83 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	};
 
 	/** @type {UiPartRenderer} */
+	static _renderAutoWallsTab = ({ terrainType, index }) => {
+		const cfg = terrainType.autoGenerateWalls ?? createDefaultAutoGenerateWalls();
+		const senseTypes = Object.fromEntries(Object.entries(CONST.WALL_SENSE_TYPES).map(([k, v]) => [v, `WALLS.SenseTypes.${k}`]));
+		const dirTypes = Object.fromEntries(Object.entries(CONST.WALL_DIRECTIONS).map(([k, v]) => [v, `WALLS.Directions.${k}`]));
+		return html`
+			<div class="form-group">
+				<label for="terrainType${index}_autoWallsEnabled">${l("TERRAINHEIGHTTOOLS.AutoWalls.Enabled.Name")}</label>
+				<div class="form-fields">
+					<input id="terrainType${index}_autoWallsEnabled" type="checkbox" name="${index}.autoGenerateWalls.enabled" .checked=${cfg.enabled}>
+				</div>
+				<p class="hint">${l("TERRAINHEIGHTTOOLS.AutoWalls.Enabled.Hint")}</p>
+			</div>
+
+			<div class="form-group">
+				<label>${l("WALLS.Movement")}</label>
+				<div class="form-fields">
+					<select name="${index}.autoGenerateWalls.move" data-dtype="Number">
+						${selectOptions(senseTypes, { selected: String(cfg.move) })}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label>${l("WALLS.Light")}</label>
+				<div class="form-fields">
+					<select name="${index}.autoGenerateWalls.light" data-dtype="Number">
+						${selectOptions(senseTypes, { selected: String(cfg.light) })}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label>${l("WALLS.Sight")}</label>
+				<div class="form-fields">
+					<select name="${index}.autoGenerateWalls.sight" data-dtype="Number">
+						${selectOptions(senseTypes, { selected: String(cfg.sight) })}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label>${l("WALLS.Sound")}</label>
+				<div class="form-fields">
+					<select name="${index}.autoGenerateWalls.sound" data-dtype="Number">
+						${selectOptions(senseTypes, { selected: String(cfg.sound) })}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label>${l("WALLS.Direction")}</label>
+				<div class="form-fields">
+					<select name="${index}.autoGenerateWalls.dir" data-dtype="Number">
+						${selectOptions(dirTypes, { selected: String(cfg.dir) })}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label>${l("WALLS.ThresholdAttenuation")}</label>
+				<div class="form-fields">
+					<input type="checkbox" name="${index}.autoGenerateWalls.attenuation" .checked=${!!cfg.attenuation}>
+				</div>
+			</div>
+
+			${when(game.modules.get(wallHeightModuleName)?.active, () => html`
+				<div class="form-group">
+					<label>${l("TERRAINHEIGHTTOOLS.SetWallHeightFlags")}</label>
+					<div class="form-fields">
+						<input type="checkbox" name="${index}.autoGenerateWalls.setWallHeightFlags" .checked=${cfg.setWallHeightFlags}>
+					</div>
+				</div>
+			`)}
+		`;
+	};
+
+	/** @type {UiPartRenderer} */
 	static _renderOtherTab = ({ terrainType, index }) => html`
 		<div class="form-group">
 			<label for="terrainType${index}_isZone">${l("TERRAINHEIGHTTOOLS.IsZone.Name")}</label>
@@ -1151,6 +1228,11 @@ const configTabs = {
 		label: "TERRAINHEIGHTTOOLS.Trigger.Tab",
 		icon: "fas fa-bolt",
 		parts: [TerrainTypesConfig._renderTriggersTab]
+	},
+	autoWalls: {
+		label: "TERRAINHEIGHTTOOLS.AutoWalls.Tab",
+		icon: "fas fa-block-brick",
+		parts: [TerrainTypesConfig._renderAutoWallsTab]
 	},
 	other: {
 		label: "TERRAINHEIGHTTOOLS.TabOther",

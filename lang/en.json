@@ -187,6 +187,13 @@
 		"TabLabel": "Label",
 		"TabLine": "Line",
 		"TabOther": "Other",
+		"AutoWalls": {
+			"Tab": "Auto Walls",
+			"Enabled": {
+				"Name": "Auto-generate walls",
+				"Hint": "Vision-blocking edges follow the shape automatically. They aren't actual wall documents, so they won't show up in the wall layer or be persisted in the scene."
+			}
+		},
 		"Terrain": "Terrain",
 		"TerrainTypesToErase": "Terrain types to erase",
 		"TextureOffset": "Texture Offset",

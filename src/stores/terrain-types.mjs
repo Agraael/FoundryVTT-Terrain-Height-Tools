@@ -61,7 +61,20 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {number | null} defaultElevation
  * @property {number} movementPenalty
  * @property {TerrainTrigger[]} triggers
+ * @property {AutoGenerateWallsConfig} autoGenerateWalls
  * @property {Record<string, any>} flags
+ */
+
+/**
+ * @typedef {object} AutoGenerateWallsConfig
+ * @property {boolean} enabled
+ * @property {number} move
+ * @property {number} light
+ * @property {number} sight
+ * @property {number} sound
+ * @property {number} dir
+ * @property {boolean} attenuation
+ * @property {boolean} setWallHeightFlags
  */
 
 /**
@@ -138,7 +151,22 @@ export function createDefaultTerrainType(id = undefined) {
 		defaultElevation: null,
 		movementPenalty: 0,
 		triggers: [],
+		autoGenerateWalls: createDefaultAutoGenerateWalls(),
 		flags: {}
+	};
+}
+
+/** @returns {AutoGenerateWallsConfig} */
+export function createDefaultAutoGenerateWalls() {
+	return {
+		enabled: false,
+		move: CONST.WALL_SENSE_TYPES.NORMAL,
+		light: CONST.WALL_SENSE_TYPES.NORMAL,
+		sight: CONST.WALL_SENSE_TYPES.NORMAL,
+		sound: CONST.WALL_SENSE_TYPES.NORMAL,
+		dir: CONST.WALL_DIRECTIONS.BOTH,
+		attenuation: false,
+		setWallHeightFlags: true
 	};
 }
 

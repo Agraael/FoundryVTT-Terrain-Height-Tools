@@ -1,5 +1,6 @@
 import * as api from "./api.mjs";
 import { TerrainStackViewer } from "./applications/terrain-stack-viewer.mjs";
+import { initAutoWallEdges } from "./auto-wall-edges.mjs";
 import { TokenLineOfSightConfig } from "./applications/token-line-of-sight-config.mjs";
 import { registerSceneControls } from "./config/controls.mjs";
 import { registerKeybindings } from "./config/keybindings.mjs";
@@ -51,6 +52,8 @@ function init() {
 	registerTerrainProvider(heightMapProviderId, heightMap);
 
 	registerTriggerDispatcher();
+
+	initAutoWallEdges();
 
 	CONFIG.Canvas.layers.terrainHeightEditorLayer = { group: "interface", layerClass: TerrainHeightEditorLayer };
 	CONFIG.Canvas.layers.terrainHeightGraphicsLayer = { group: "interface", layerClass: TerrainHeightGraphicsLayer };
