@@ -626,10 +626,28 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Target.Label")}</label>
 						<div class="form-fields">
 							<select name="${index}.triggers.${triggerIndex}.targetTokens">
-								${selectOptions(triggerTargetTokens, { selected: trigger.targetTokens })}
-								${getAdvancedFactionTeams().map(team => html`
-									<option value=${`TEAM:${team.id}`} ?selected=${trigger.targetTokens === `TEAM:${team.id}`}>${team.name}</option>
-								`)}
+								<option value="ALL" ?selected=${trigger.targetTokens === "ALL"}>${l(triggerTargetTokens.ALL)}</option>
+								<optgroup label=${l("TOKEN.Disposition")}>
+									<option value="FRIENDLY" ?selected=${trigger.targetTokens === "FRIENDLY"}>${l(triggerTargetTokens.FRIENDLY)}</option>
+									<option value="HOSTILE" ?selected=${trigger.targetTokens === "HOSTILE"}>${l(triggerTargetTokens.HOSTILE)}</option>
+									<option value="NEUTRAL" ?selected=${trigger.targetTokens === "NEUTRAL"}>${l(triggerTargetTokens.NEUTRAL)}</option>
+									<option value="SECRET" ?selected=${trigger.targetTokens === "SECRET"}>${l(triggerTargetTokens.SECRET)}</option>
+									<option value="PLAYER_OWNED" ?selected=${trigger.targetTokens === "PLAYER_OWNED"}>${l(triggerTargetTokens.PLAYER_OWNED)}</option>
+								</optgroup>
+								<optgroup label=${l("Type")}>
+									${Object.keys(game.model.Actor ?? {}).filter(t => t !== "base").map(t => {
+										const localized = l(`TYPES.Actor.${t}`);
+										const label = localized === `TYPES.Actor.${t}` ? t : localized;
+										return html`<option value=${`ACTORTYPE:${t}`} ?selected=${trigger.targetTokens === `ACTORTYPE:${t}`}>${label}</option>`;
+									})}
+								</optgroup>
+								${getAdvancedFactionTeams().length > 0 ? html`
+									<optgroup label="Advanced Team">
+										${getAdvancedFactionTeams().map(team => html`
+											<option value=${`TEAM:${team.id}`} ?selected=${trigger.targetTokens === `TEAM:${team.id}`}>${team.name}</option>
+										`)}
+									</optgroup>
+								` : ""}
 							</select>
 						</div>
 					</div>

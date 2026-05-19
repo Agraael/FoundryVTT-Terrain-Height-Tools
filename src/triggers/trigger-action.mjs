@@ -33,6 +33,9 @@ export function passesTargetFilter(tokenDoc, filter) {
 			?? tokenDoc.actor?.prototypeToken?.flags?.["token-factions"]?.team;
 		return tokenTeamId === wantedTeamId;
 	}
+	if (filter?.startsWith?.("ACTORTYPE:")) {
+		return tokenDoc.actor?.type === filter.slice("ACTORTYPE:".length);
+	}
 	switch (filter) {
 		case "ALL": return true;
 		case "FRIENDLY": return tokenDoc.disposition === CONST.TOKEN_DISPOSITIONS.FRIENDLY;
