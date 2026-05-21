@@ -19,7 +19,15 @@ export function registerSceneControls(controls) {
 		[tools.lineOfSight]: {
 			name: tools.lineOfSight,
 			title: "CONTROLS.TerrainHeightToolsLineOfSightRuler",
-			icon: "fas fa-ruler-combined"
+			icon: "fas fa-ruler-combined",
+			toolclip: {
+				heading: "CONTROLS.TerrainHeightToolsLineOfSightRuler",
+				items: [
+					{
+						paragraph: "CONTROLS.TerrainHeightToolsLineOfSightRulerP"
+					}
+				]
+			}
 		},
 		[tools.tokenLineOfSight]: {
 			name: tools.tokenLineOfSight,
@@ -27,6 +35,14 @@ export function registerSceneControls(controls) {
 			icon: "fas fa-compass-drafting",
 			onChange: () => {
 				LineOfSightRulerLayer.current?._autoSelectTokenLosTargets();
+			},
+			toolclip: {
+				heading: "CONTROLS.TerrainHeightToolsTokenLineOfSight",
+				items: [
+					{
+						paragraph: "CONTROLS.TerrainHeightToolsTokenLineOfSightP"
+					}
+				]
 			}
 		},
 		[terrainHeightLayerToggleButtonName]: {
@@ -35,7 +51,15 @@ export function registerSceneControls(controls) {
 			icon: "fas fa-chart-simple",
 			onChange: (_event, isActive) => game.settings.set(moduleName, settingNames.showTerrainHeightOnTokenLayer, isActive),
 			toggle: true,
-			active: game.settings.get(moduleName, settingNames.showTerrainHeightOnTokenLayer)
+			active: game.settings.get(moduleName, settingNames.showTerrainHeightOnTokenLayer),
+			toolclip: {
+				heading: "CONTROLS.TerrainHeightToolsLayerToggle",
+				items: [
+					{
+						paragraph: "CONTROLS.TerrainHeightToolsLayerToggleP"
+					}
+				]
+			}
 		}
 	});
 

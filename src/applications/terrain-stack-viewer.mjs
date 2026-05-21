@@ -109,7 +109,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		element.style.display = this.#isVisible$.value ? "block" : "none";
 		const existing = document.getElementById(element.id);
 		if (existing) existing.replaceWith(element);
-		else document.getElementById("ui-bottom").prepend(element);
+		else foundry.ui.players.element.before(element);
 	}
 
 	/** @override */
