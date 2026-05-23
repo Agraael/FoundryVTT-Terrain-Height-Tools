@@ -10,7 +10,7 @@ multi-select-fwl:is(:focus, .multi-select-fwl-open) {
 	--input-text-color: var(--color-light-1);
 }
 
-.theme-light multi-select-fwl {
+.themed.theme-light multi-select-fwl {
 	--input-background-color: rgba(0, 0, 0, 0.1);
     --input-border-color: var(--color-dark-6);
     --input-text-color: var(--color-dark-2);
@@ -18,7 +18,7 @@ multi-select-fwl:is(:focus, .multi-select-fwl-open) {
     --input-focus-outline-color: var(--color-warm-2);
 }
 
-.theme-light multi-select-fwl:is(:focus, .multi-select-fwl-open) {
+.themed.theme-light multi-select-fwl:is(:focus, .multi-select-fwl-open) {
 	--input-text-color: var(--color-dark-1);
 }
 
@@ -38,7 +38,7 @@ multi-select-fwl > .multi-select-fwl-button {
     color: var(--input-text-color);
     user-select: text;
     font-size: var(--font-size-14);
-    transition: outline-color 0.5s;
+    transition: outline-color var(--transition-fn-fwl) var(--transition-duration-fwl);;
 }
 
 multi-select-fwl:is(:focus, .multi-select-fwl-open) > .multi-select-fwl-button {
