@@ -1,4 +1,4 @@
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { when } from "lit/directives/when.js";
 import { toolclip } from "../../../applications/directives/toolclip.mjs";
@@ -43,7 +43,7 @@ export class SegmentElement extends LitElement {
 					<div
 						class=${classMap({ "segment-fwl-item": true, "active": this.#getItemValue(item) === this.value })}
 						@click=${() => this.#selectItem(item)}
-						${when(this.#getItemToolclip(item), tc => toolclip(tc))}
+						data-tooltip=${when(this.#getItemToolclip(item), tc => toolclip(tc), nothing)}
 					>
 						${when(this.#getItemIcon(item), icon => html`<i class=${icon}></i>`)}
 						${when(this.#getItemLabel(item), label => html`<span>${label}</span>`)}
