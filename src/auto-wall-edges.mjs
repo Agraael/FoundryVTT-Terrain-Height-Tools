@@ -40,7 +40,7 @@ function _addEdgesForShape(shape) {
 	for (let i = 0; i < edges.length; i++) {
 		const e = edges[i];
 		const id = `${prefix}${i}`;
-		const edge = new foundry.canvas.edges.Edge(e.p1, e.p2, {
+		const edge = new foundry.canvas.geometry.edges.Edge(e.p1, e.p2, {
 			id,
 			type: "wall",
 			light: cfg.light,
