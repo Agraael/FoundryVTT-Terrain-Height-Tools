@@ -2,6 +2,7 @@
 /** @import { HeightMapDataV3 } from "../utils/height-map-migrations.mjs" */
 /** @import { PointLike } from "./point.mjs" */
 import { difference as polygonDifference, intersection as polygonIntersection, union as polygonUnion } from "polygon-clipping";
+import { TerrainShapeChoiceDialog } from "../applications/terrain-shape-choice-dialog.mjs";
 import { flags, moduleName } from "../consts.mjs";
 import { TerrainProvider } from "../stores/terrain-manager.mjs";
 import { getTerrainType, terrainTypeMap$, terrainTypes$ } from "../stores/terrain-types.mjs";
@@ -63,6 +64,23 @@ export class HeightMap extends TerrainProvider {
 		return [...this.getShapes(new PIXI.Rectangle(x, y, 0, 0), {
 			collisionTest: ({ t: shape }) => shape.containsPoint(x, y, { containsOnEdge: true })
 		})];
+	}
+
+	/**
+	 * Returns a single shape that exists at the given x and y coordinates. If multiple shapes exist, asks the user which one they would
+	 * like to pick.
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {Parameters<(typeof TerrainShapeChoiceDialog)["show"]>[1]} dialogOptions
+	 * @returns {Promise<TerrainShape | undefined>}
+	 */
+	async getSingleShapeAtPoint(x, y, dialogOptions) {
+		const shapes = this.getShapesAtPoint(x, y);
+		switch (shapes.length) {
+			case 0: return undefined;
+			case 1: return shapes[0];
+			default: return TerrainShapeChoiceDialog.show(shapes, dialogOptions).catch(() => undefined);
+		}
 	}
 
 	// -------------- //
@@ -424,13 +442,13 @@ export class HeightMap extends TerrainProvider {
 	}
 
 	/**
-	 * Remove the given TerrainShape from the height map.
-	 * @param {TerrainShape} shape Shape to remove.
+	 * Remove the given TerrainShapes from the height map.
+	 * @param {...(TerrainShape | TerrainShape[])} shapes Shapes to remove.
 	 * @returns true if any changes have been made
 	 */
-	async eraseShape(shape) {
+	async eraseShapes(...shapes) {
 		return await this.#withPersistence(() => {
-			return this.deleteShapes(shape);
+			return this.deleteShapes(...shapes);
 		});
 	}
 

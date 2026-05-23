@@ -14,6 +14,7 @@ export const showZonesAboveNonZones$ = signal(false);
 export const useFractionsForLabels$ = signal(true);
 export const smartLabelPlacement$ = signal(true);
 export const terrainLayerAboveTilesDefault$ = signal(true);
+export const paintToolbarUseHeightElevation$ = signal(false);
 
 export function registerSettings() {
 
@@ -174,6 +175,13 @@ export function registerSettings() {
 		config: true,
 		default: true
 	}, smartLabelPlacement$);
+
+	registerSetting(settingNames.paintToolbarUseHeightElevation, {
+		scope: "client",
+		type: Boolean,
+		config: false,
+		default: false
+	}, paintToolbarUseHeightElevation$);
 
 	/**
 	 * Registers a setting and optionally binds it's value to a sigmal.

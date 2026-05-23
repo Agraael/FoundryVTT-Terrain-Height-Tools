@@ -81,7 +81,7 @@ class StyleTerrainColorDirective extends AsyncDirective {
 			? premultiplyKeyframes(terrainType.textColorAnimation.keyframes)
 			: null;
 
-		this.#updateCss();
+		Promise.resolve().then(() => this.#updateCss());
 	}
 
 	reconnected() {

@@ -81,25 +81,10 @@ export function registerSceneControls(controls) {
 				title: "CONTROLS.TerrainHeightToolsPaint",
 				icon: "fas fa-paintbrush-alt"
 			},
-			[tools.fill]: {
-				name: tools.fill,
-				title: "CONTROLS.TerrainHeightToolsFill",
-				icon: "fas fa-fill-drip"
-			},
 			[tools.erase]: {
 				name: tools.erase,
 				title: "CONTROLS.TerrainHeightToolsErase",
 				icon: "fas fa-eraser"
-			},
-			[tools.eraseShape]: {
-				name: tools.eraseShape,
-				title: "CONTROLS.TerrainHeightToolsEraseShape",
-				icon: "far fa-rectangle-xmark"
-			},
-			[tools.pipette]: {
-				name: tools.pipette,
-				title: "CONTROLS.TerrainHeightToolsPipette",
-				icon: "fas fa-eye-dropper"
 			},
 			[tools.terrainVisibility]: {
 				name: tools.terrainVisibility,

@@ -4,10 +4,7 @@ import { activeControl$, activeTool$ } from "../../stores/scene-controls.mjs";
 import { abortableEffect } from "../../utils/signal-utils.mjs";
 import { ConvertShapeEditorTool } from "./editor-tools/convert-shape-editor-tool.mjs";
 import { EraseEditorTool } from "./editor-tools/erase-editor-tool.mjs";
-import { EraseShapeEditorTool } from "./editor-tools/erase-shape-editor-tool.mjs";
-import { FillEditorTool } from "./editor-tools/fill-editor-tool.mjs";
 import { PaintEditorTool } from "./editor-tools/paint-editor-tool.mjs";
-import { PipetteEditorTool } from "./editor-tools/pipette-editor-tool.mjs";
 import { TerrainVisibilityEditorTool } from "./editor-tools/terrain-visibility-editor-tool.mjs";
 
 const { InteractionLayer } = foundry.canvas.layers;
@@ -24,10 +21,7 @@ export class TerrainHeightEditorLayer extends InteractionLayer {
 	static #tools = {
 		[tools.convert]: ConvertShapeEditorTool,
 		[tools.erase]: EraseEditorTool,
-		[tools.eraseShape]: EraseShapeEditorTool,
-		[tools.fill]: FillEditorTool,
 		[tools.paint]: PaintEditorTool,
-		[tools.pipette]: PipetteEditorTool,
 		[tools.terrainVisibility]: TerrainVisibilityEditorTool
 	};
 

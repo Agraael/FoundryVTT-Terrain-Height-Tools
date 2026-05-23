@@ -6,20 +6,24 @@ import { convertConfig$, wallConfig$ } from "../../../stores/drawing.mjs";
 import { getTerrainType } from "../../../stores/terrain-types.mjs";
 import { toSceneUnits } from "../../../utils/grid-utils.mjs";
 import { getLabelText } from "../../terrain-height-graphics/terrain-shape-graphic.mjs";
-import { AbstractShapePickerEditorTool } from "./abstract/abstract-shape-picker-editor-tool.mjs";
+import { AbstractEditorTool } from "./abstract/abstract-editor-tool.mjs";
 
 /**
  * Tool that allows a user to convert an existing shape into drawing/walls/region.
  */
-export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
+export class ConvertShapeEditorTool extends AbstractEditorTool {
 
 	static APPLICATION_TYPE = ShapeConversionConfig;
 
-	static hint = "TERRAINHEIGHTTOOLS.SelectAShapeConvertHint";
-
-	static submitLabel = "TERRAINHEIGHTTOOLS.ConvertSelectedShape";
-
-	static submitIcon = "fas fa-arrow-turn-right";
+	_onMouseDownLeft(x, y) {
+		heightMap.getSingleShapeAtPoint(x, y, {
+			hint: "TERRAINHEIGHTTOOLS.SelectAShapeConvertHint",
+			submitLabel: "TERRAINHEIGHTTOOLS.ConvertSelectedShape",
+			submitIcon: "fas fa-arrow-turn-right"
+		}).then(shape => {
+			if (shape) this._selectShape(shape);
+		});
+	}
 
 	/**
 	 * @param {TerrainShape} shape
@@ -129,7 +133,7 @@ export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
 		}
 
 		if (deleteAfter)
-			await heightMap.eraseShape(shape);
+			await heightMap.eraseShapes(shape);
 
 		// Notify user, because it may not be obvious that it's worked.
 		ui.notifications.info(game.i18n.localize("TERRAINHEIGHTTOOLS.NotifyShapeConversionComplete"));
