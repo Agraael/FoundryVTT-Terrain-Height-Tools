@@ -9,7 +9,7 @@
 		"TerrainHeightToolsLineOfSightRuler": "Line of Sight Ruler",
 		"TerrainHeightToolsLineOfSightRulerP": "Draws a line of sight ray between two points, highlighting any intersections with terrain.",
 		"TerrainHeightToolsPaint": "Paint Terrain",
-		"TerrainHeightToolsShapeConvert": "Convert Shapes to Drawings/Walls",
+		"TerrainHeightToolsShapeConvert": "Convert Shapes",
 		"TerrainHeightToolsTerrainVisibility": "Terrain Visibility",
 		"TerrainHeightToolsTokenLineOfSight": "Token Line of Sight",
 		"TerrainHeightToolsTokenLineOfSightDrawRuler": "Draw ruler",

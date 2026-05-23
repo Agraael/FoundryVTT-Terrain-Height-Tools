@@ -3,7 +3,7 @@
 ## All Users
 
 ### Show Terrain Viewer on Token Layer
-If enabled, you will see a small window appear in the bottom right of your screen showing you a side view of the terrain you are hovering over.
+If enabled, you will see a small window appear in the bottom left of your screen showing you a side view of the terrain you are hovering over.
 
 ![Terrain Viewer](./img/terrain-viewer.webp)
 
