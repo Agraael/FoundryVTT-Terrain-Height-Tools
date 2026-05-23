@@ -28,14 +28,6 @@ export function prettyFraction(v) {
 }
 
 /**
- * Converts a value between 0-1 to a two-digit hex number.
- * @param {number} a
- */
-export function alphaToHex(a) {
-	return Math.round(a * 255).toString(16).padStart(2, "0");
-}
-
-/**
 * @param {*} obj
 * @returns {obj is Point3D}
 */

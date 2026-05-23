@@ -26,7 +26,9 @@ export const LitApplicationMixin = BaseClass => class extends BaseClass {
 
 	/** @override */
 	close(...args) {
-		this.#closeController.abort();
+		// Do this after a tick so that pending effects that happen during cleanup can complete before being unsubbed
+		Promise.resolve().then(() => this.#closeController.abort());
+
 		super.close(...args);
 	}
 };
