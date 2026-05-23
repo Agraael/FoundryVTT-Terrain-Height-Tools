@@ -724,7 +724,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 					icon: "<i class='fas fa-upload'></i>",
 					label: l("TERRAINHEIGHTTOOLS.ImportCombine"),
 					action: "importCombine",
-					callback: (_event, _target, element) => {
+					callback: (_event, _target, { element }) => {
 						if (!this._importTerrainTypeSettings(element.querySelector("textarea").value, false))
 							throw new Error("Invalid data"); // Throw as an error to prevent dialog from closing
 					}
@@ -733,7 +733,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 					icon: "<i class='fas fa-upload'></i>",
 					label: l("TERRAINHEIGHTTOOLS.ImportReplace"),
 					action: "importReplace",
-					callback: (_event, _target, element) => {
+					callback: (_event, _target, { element }) => {
 						if (!this._importTerrainTypeSettings(element.querySelector("textarea").value, true))
 							throw new Error("Invalid data"); // Throw as an error to prevent dialog from closing
 					}
