@@ -1,4 +1,4 @@
-import { TerrainErasePalette } from "../../../applications/terrain-erase-palette.mjs";
+import { TerrainEraseToolbar } from "../../../applications/terrain-erase-toolbar.mjs";
 import { drawingModeTypes } from "../../../consts.mjs";
 import { heightMap } from "../../../geometry/height-map.mjs";
 import { drawingMode$, eraseConfig$ } from "../../../stores/drawing.mjs";
@@ -15,7 +15,7 @@ import { ShapePickerDrawingMode } from "./drawing-modes/shape-picker-drawing-mod
  */
 export class EraseEditorTool extends AbstractPolygonEditorTool {
 
-	static APPLICATION_TYPE = TerrainErasePalette;
+	static APPLICATION_TYPE = TerrainEraseToolbar;
 
 	#previewStyle = {
 		line: g => g.lineStyle(4, 0x000000, 0.6),
@@ -36,6 +36,10 @@ export class EraseEditorTool extends AbstractPolygonEditorTool {
 
 	constructor() {
 		super();
+
+		// If selected drawing mode not valid for this tool (e.g. pipette tool), switch to default
+		if (!(drawingMode$.value in this.modes))
+			drawingMode$.value = [...Object.keys(this.modes)][0];
 
 		// If selected drawing mode is cells and the scene is gridless, select another
 		if (canvas.grid?.type === CONST.GRID_TYPES.GRIDLESS && drawingMode$.value === "gridCells")

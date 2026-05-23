@@ -35,7 +35,7 @@ export const drawingModeTypes = /** @type {const} */ ({
 	rectangle: "rectangle",
 	ellipse: "ellipse",
 	customPoly: "customPoly",
-	flood: "flood",
+	fill: "fill",
 	pipette: "pipette",
 	deleteShape: "deleteShape"
 });

@@ -259,7 +259,7 @@ export class HeightMap extends TerrainProvider {
 	 * @param {number} height The height of the terrain to paint.
 	 * @param {number} elevation The elevation of the terrain to paint.
 	 * @param {Object} [options]
-	 * @param {TerrainFillMode} [options.floodMode] How to determine areas:
+	 * @param {TerrainFillMode} [options.fillMode] How to determine areas:
 	 * - `"applicableBoundary"` - Only fills areas that are have identical terrain data within the height range to be painted.
 	 * - `"strictBoundary"` - Only fills areas that contain identical terrain data (looks at the entire cell).
 	 * @param {TerrainPaintMode} [options.paintMode] How to handle existing terrain:
@@ -268,7 +268,7 @@ export class HeightMap extends TerrainProvider {
 	 * - `"destructiveMerge"` - Merges the new terrain data with the existing data, removing existing overlapping terrain.
 	 * @returns true if any changes have been made
 	 */
-	async fillRegion([x, y], terrainTypeId, height = 1, elevation = 0, { floodMode = "applicableBoundary", paintMode = "totalReplace" } = {}) {
+	async fillRegion([x, y], terrainTypeId, height = 1, elevation = 0, { fillMode = "applicableBoundary", paintMode = "totalReplace" } = {}) {
 		// The initial region that might be filled (this will be narrowed down).
 		/** @type {[number, number][][][]} */
 		let paintRegion;
@@ -311,7 +311,7 @@ export class HeightMap extends TerrainProvider {
 		const top = height + elevation;
 		const overlappingShapes = this.getShapes(new PIXI.Rectangle(minX, minY, maxX - minX, maxY - minY), {
 			collisionTest: ({ t: shape }) =>
-				floodMode === "strictBoundary" || // If in strictBoundry mode, consider all shapes regardless of elevation
+				fillMode === "strictBoundary" || // If in strictBoundry mode, consider all shapes regardless of elevation
 				!shape.terrainType.usesHeight || // Always include zones
 				(shape.bottom < top && shape.top >= elevation) // Include shapes whose top/bottom overlaps paint region
 		});

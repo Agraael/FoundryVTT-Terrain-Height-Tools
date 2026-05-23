@@ -41,7 +41,7 @@ export class PaintEditorTool extends AbstractPolygonEditorTool {
 		[drawingModeTypes.rectangle]: new RectangleDrawingMode(this.#previewStyle).then(this.#paintRegions),
 		[drawingModeTypes.ellipse]: new EllipseDrawingMode(this.#previewStyle).then(this.#paintRegions),
 		[drawingModeTypes.customPoly]: new CustomPolygonDrawingMode(this.#previewStyle).then(this.#paintRegions),
-		[drawingModeTypes.flood]: new PointDrawingMode().then(this.#fillRegion),
+		[drawingModeTypes.fill]: new PointDrawingMode().then(this.#fillRegion),
 		[drawingModeTypes.pipette]: new ShapePickerDrawingMode({
 			hint: "TERRAINHEIGHTTOOLS.SelectAShapeCopyHint",
 			submitLabel: "TERRAINHEIGHTTOOLS.CopySelectedShapeConfiguration",
@@ -51,6 +51,10 @@ export class PaintEditorTool extends AbstractPolygonEditorTool {
 
 	constructor() {
 		super();
+
+		// If selected drawing mode not valid for this tool (e.g. delete shape tool), switch to default
+		if (!(drawingMode$.value in this.modes))
+			drawingMode$.value = [...Object.keys(this.modes)][0];
 
 		// If selected drawing mode is cells and the scene is gridless, select another
 		if (canvas.grid?.type === CONST.GRID_TYPES.GRIDLESS && drawingMode$.value === "gridCells")
@@ -91,7 +95,7 @@ export class PaintEditorTool extends AbstractPolygonEditorTool {
 			terrainTypeId,
 			usesHeight ? height : 0,
 			usesHeight ? elevation : 0,
-			{ floodMode: "applicableBoundary", paintMode: mode }
+			{ fillMode: "applicableBoundary", paintMode: mode }
 		);
 	}
 

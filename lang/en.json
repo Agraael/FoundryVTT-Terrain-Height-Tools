@@ -1,5 +1,6 @@
 {
 	"CONTROLS": {
+		"Copy": "Copy",
 		"GroupTerrainHeightTools": "Terrain Height Tools",
 		"TerrainHeightToolsClear": "Clear Height Map",
 		"TerrainHeightToolsErase": "Erase Terrain",
@@ -21,7 +22,15 @@
 		"TerrainHeightToolsDrawingModeCustomPolygon": "Custom Polygon",
 		"TerrainHeightToolsDrawingModeCustomPolygonDraw": "<span class=\"reference\">Click</span> to start a new polygon or add a new point. <span class=\"reference\">Double Click</span> to finish.",
 		"TerrainHeightToolsDrawingModeCustomPolygonRemoveLastPoint": "Remove last point",
-		"TerrainHeightToolsDrawingModeFlood": "Flood"
+		"TerrainHeightToolsDrawingModeFill": "Fill",
+		"TerrainHeightToolsDrawingModeFillClick": "<span class=\"reference\">Click</span> to fill from the clicked position.",
+		"TerrainHeightToolsDrawingModeFillP": "Fills similar adjacent space with the selected terrain. Similar is defined as being identical within the painted range (e.g. if painting from bottom = 2 to top = 4, then terrain is similar if all terrain between H2 and H4 is identical to the clicked point)",
+		"TerrainHeightToolsDrawingModeDeleteShape": "Delete Shape",
+		"TerrainHeightToolsDrawingModeDeleteShapeClick": "<span class=\"reference\">Click</span> on a shape to delete it.",
+		"TerrainHeightToolsDrawingModeDeleteShapeP": "Deletes an entire shape from the scene. Note that this is not affected by the bottom/top range or the 'terrain types to erase' filter.",
+		"TerrainHeightToolsDrawingModePipette": "Copy Terrain Configuration",
+		"TerrainHeightToolsDrawingModePipetteClick": "<span class=\"reference\">Click</span> on an existing shape.",
+		"TerrainHeightToolsDrawingModePipetteP": "Selecting a shape will copy its configuration (terrain type, bottom and top or elevation and height) to the terrain painting toolbar."
 	},
 	"KEYBINDINGS": {
 		"DecreaseLosRulerHeight": "Decrease Line of Sight Ruler Elevation",
@@ -84,9 +93,9 @@
 		"ConvertToWalls": "Convert to Walls",
 		"CopySelectedShapeConfiguration": "Copy selected shape's configuration",
 		"DefaultElevation.Name": "Default Elevation",
-		"DefaultElevation.Hint": "If provided, when selecting this terrain type in the paint palette, the painting elevation will be set to this value. You are still able to change it.",
+		"DefaultElevation.Hint": "If provided, when selecting this terrain type in the paint toolbar, the painting elevation will be set to this value. You are still able to change it.",
 		"DefaultHeight.Name": "Default Height",
-		"DefaultHeight.Hint": "If provided, when selecting this terrain type in the paint palette, the painting height will be set to this value. You are still able to change it.",
+		"DefaultHeight.Hint": "If provided, when selecting this terrain type in the paint toolbar, the painting height will be set to this value. You are still able to change it.",
 		"DeleteAfterConversion": "Erase shape after conversion?",
 		"DisableAnimation": "Disable animation",
 		"ElevatedLabelFormat.Name": "Elevated Label Format",
@@ -154,7 +163,6 @@
 		"PaintMode.DestructiveMerge.Hint": "Add new terrain, replacing existing terrain in the same area",
 		"PaintMode.TotalReplace.Name": "Clear",
 		"PaintMode.TotalReplace.Hint": "Replace the area entirely with the new terrain (even if it does not occupy the same vertical space)",
-		"PaletteTitle": "Terrain Palette",
 		"Placeholders": {
 			"Elevation": "The elevation of the terrain (how far it is off the ground).",
 			"Height": "The height (vertical size) of the terrain.",

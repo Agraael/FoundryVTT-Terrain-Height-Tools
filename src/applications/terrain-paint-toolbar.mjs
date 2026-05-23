@@ -1,6 +1,7 @@
 /** @import { Ref } from "lit/directives/ref.js"; */
 /** @import { TemplateDropdownElement } from "../shared/elements/template-dropdown/template-dropdown.mjs"; */
-import { computed, html } from "@lit-labs/preact-signals";
+import { html } from "@lit-labs/preact-signals";
+import { computed } from "@preact/signals-core";
 import { choose } from "lit/directives/choose.js";
 import { classMap } from "lit/directives/class-map.js";
 import { createRef, ref } from "lit/directives/ref.js";
@@ -148,7 +149,7 @@ export class TerrainPaintToolbar extends LitApplicationMixin(ApplicationV2) {
 	}
 
 	#renderTerrainTypePickerDropdown = () => html`
-		<ul class="tht-toolbar-terrain-type-palette">
+		<ul class="tht-terrain-type-palette">
 			${terrainTypes$.value.map(terrainType => html`
 				<li
 					class=${computed(() => classMap({ active: paintingConfig$.terrainTypeId.value === terrainType.id }))}
@@ -169,7 +170,6 @@ export class TerrainPaintToolbar extends LitApplicationMixin(ApplicationV2) {
 	_insertElement(element) {
 		const existing = document.getElementById(element.id);
 		if (existing) existing.replaceWith(element);
-		// else document.querySelector("#ui-bottom").prepend(element);
 		else document.querySelector("#ui-top").appendChild(element);
 	}
 
@@ -228,17 +228,26 @@ export class TerrainPaintToolbar extends LitApplicationMixin(ApplicationV2) {
 				}
 			},
 			{
-				value: drawingModeTypes.flood,
+				value: drawingModeTypes.fill,
 				icon: "fas fa-fill-drip",
 				toolclip: {
-					heading: "CONTROLS.TerrainHeightToolsDrawingModeFlood"
+					heading: "CONTROLS.TerrainHeightToolsDrawingModeFill",
+					src: `modules/${moduleName}/toolclips/drawingmode-fill.mp4`,
+					items: [
+						{ heading: "CONTROLS.TerrainHeightToolsDrawingModeFill", content: "CONTROLS.TerrainHeightToolsDrawingModeFillClick" },
+						{ paragraph: "CONTROLS.TerrainHeightToolsDrawingModeFillP" }
+					]
 				}
 			},
 			{
 				value: drawingModeTypes.pipette,
 				icon: "fas fa-eye-dropper",
 				toolclip: {
-					heading: "CONTROLS.TerrainHeightToolsDrawingModePipette"
+					heading: "CONTROLS.TerrainHeightToolsDrawingModePipette",
+					items: [
+						{ heading: "CONTROLS.Copy", content: "CONTROLS.TerrainHeightToolsDrawingModePipetteClick" },
+						{ paragraph: "CONTROLS.TerrainHeightToolsDrawingModePipetteP" }
+					]
 				}
 			}
 		].filter(Boolean);
