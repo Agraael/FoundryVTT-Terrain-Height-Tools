@@ -199,6 +199,7 @@
 		"Terrain": "Terrain",
 		"TerrainType": "Terrain Type",
 		"TerrainTypesToErase": "Terrain Types to Erase",
+		"TerrainVisibilityConfig": "Terrain Visibility",
 		"TextureOffset": "Texture Offset",
 		"TextureOffsetAnimation": "Texture Animation",
 		"TextureScale": "Texture Scale",

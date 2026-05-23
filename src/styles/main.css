@@ -542,6 +542,10 @@
 	margin: 0 !important;
 }
 
+.mr-05rem {
+	margin-right: 0.5rem !important;
+}
+
 .p-0 {
 	padding: 0 !important;
 }
