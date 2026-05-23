@@ -234,10 +234,15 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 	 * @param {TerrainShapeGraphic[]} [options.shapes] If provided, only updates the mask on these shapes
 	 */
 	_updateShapeMasks({ shapes } = {}) {
+		// Ensure we track this OUTSIDE of the for loop, otherwise when setting up the initial effect, if there are no
+		// shapes, then the effect won't know to track these signals.
+		const isEditLayerActive = this.#isEditLayerActive$.value;
+		const isHighlightingObjects = this.#isHighlightingObjects$.value;
+
 		for (const shape of shapes ?? this.#allShapeGraphics) {
 			const hasMask = !shape.terrainType.isAlwaysVisible
-				&& !this.#isEditLayerActive$.value
-				&& !this.#isHighlightingObjects$.value;
+				&& !isEditLayerActive
+				&& !isHighlightingObjects;
 			shape.mask = hasMask ? this.#cursorRadiusMask : null;
 		}
 	}
@@ -260,11 +265,11 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 			canvas.primary.removeChild(this.#cursorRadiusMask);
 		}
 
-		// Stop here if not applying a new mask. We are not applying a mask if:
-		// - The radius is 0, i.e. no mask
-		// - If there are no shapes; if there are no shapes to apply the mask to, it will appear as an actual white
-		//   circle on the canvas.
-		if (radius <= 0) return;
+		// Stop here the mas radius is 0 (i.e. no mask to be drawn)
+		if (radius <= 0) {
+			this.#cursorRadiusMask = null;
+			return;
+		}
 
 		// Create a radial gradient texture
 		radius *= canvas.grid.size;
