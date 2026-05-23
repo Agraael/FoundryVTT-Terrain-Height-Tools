@@ -228,7 +228,7 @@ export class LineOfSightRulerLayer extends CanvasLayer {
 		const { token1, h1, token2, h2 } = tokenLineOfSightConfig$.value;
 		if (token1 && token2) {
 			this._drawLineOfSightRays([
-				{ a: token1, ah: h1, b: token2, bh: h2, includeNoHeightTerrain: includeNoHeightTerrain$ }
+				{ a: token1, ah: h1, b: token2, bh: h2, includeNoHeightTerrain: includeNoHeightTerrain$.value }
 			], { group: moduleDrawingGroupName, drawForOthers: true });
 		} else {
 			this._clearLineOfSightRays({ group: moduleDrawingGroupName, clearForOthers: true });
