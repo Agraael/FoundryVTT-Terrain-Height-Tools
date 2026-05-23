@@ -63,7 +63,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		keyPressed$[keybindings.showTerrainStack].value ||
 		activeControl$.value === terrainHeightEditorControlName ||
 		(
-			activeControl$.value === "token" &&
+			activeControl$.value === "tokens" &&
 			showTerrainStackViewerOnTokenLayer$.value &&
 			this.#terrainShapesUnderMouse$.value.length > 0
 		));
@@ -109,7 +109,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		element.style.display = this.#isVisible$.value ? "block" : "none";
 		const existing = document.getElementById(element.id);
 		if (existing) existing.replaceWith(element);
-		else document.getElementById("ui-bottom").prepend(element);
+		else foundry.ui.players.element.before(element);
 	}
 
 	/** @override */

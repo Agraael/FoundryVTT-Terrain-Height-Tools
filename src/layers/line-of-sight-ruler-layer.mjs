@@ -13,6 +13,8 @@ import { isPoint3d, prettyFraction } from "../utils/misc-utils.mjs";
 import { rectangleFromP1P2 } from "../utils/pixi-utils.mjs";
 import { calculateRaysBetweenTokensOrPoints } from "../utils/token-utils.mjs";
 
+const { Token } = foundry.canvas.placeables;
+
 /**
  * @typedef {Object} Point3D
  * @property {number} x
@@ -37,6 +39,10 @@ const heightIndicatorXOffset = 10;
 
 // How often rulers should refresh in milliseconds. Set to 15fps.
 const rulerRefreshTimeout = 1000 / 15;
+
+const { CanvasLayer } = foundry.canvas.layers;
+const { PreciseText } = foundry.canvas.containers;
+const { KeyboardManager } = foundry.helpers.interaction;
 
 export class LineOfSightRulerLayer extends CanvasLayer {
 
@@ -92,7 +98,7 @@ export class LineOfSightRulerLayer extends CanvasLayer {
 		// Only enable events when the ruler layer is active, otherwise it interferes with other standard layers
 		effect(() => {
 			this.hitArea =
-				activeControl$.value === "token" &&
+				activeControl$.value === "tokens" &&
 				activeTool$.value === tools.lineOfSight
 					? canvas.dimensions.rect
 					: PIXI.Rectangle.EMPTY;
@@ -222,7 +228,7 @@ export class LineOfSightRulerLayer extends CanvasLayer {
 		const { token1, h1, token2, h2 } = tokenLineOfSightConfig$.value;
 		if (token1 && token2) {
 			this._drawLineOfSightRays([
-				{ a: token1, ah: h1, b: token2, bh: h2, includeNoHeightTerrain: includeNoHeightTerrain$ }
+				{ a: token1, ah: h1, b: token2, bh: h2, includeNoHeightTerrain: includeNoHeightTerrain$.value }
 			], { group: moduleDrawingGroupName, drawForOthers: true });
 		} else {
 			this._clearLineOfSightRays({ group: moduleDrawingGroupName, clearForOthers: true });

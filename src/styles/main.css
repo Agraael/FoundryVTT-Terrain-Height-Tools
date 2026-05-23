@@ -38,7 +38,7 @@
 	display: block;
 	margin-left: -1px; /* Collapse adjacent borders */
 	padding: 4px 8px;
-	border: 1px solid var(--color-border-light-tertiary);
+	border: 1px solid var(--color-cool-4);
 	text-align: center;
 	cursor: pointer;
 }
@@ -50,8 +50,7 @@
 }
 
 .tht-radio-button input:checked + label {
-	border-color: var(--color-border-highlight-alt);
-    box-shadow: 0 0 6px inset var(--color-shadow-highlight);
+	border-color: var(--color-warm-2);
 }
 
 .tht-radio-button:first-of-type label {
@@ -66,55 +65,114 @@
 }
 
 
-/* --------------------- */
-/* Terrain Type Palettes */
-/* --------------------- */
-ul.terrain-type-palette {
+/* -------------------- */
+/* Paint/erase toolbars */
+/* -------------------- */
+.tht-toolbar {
+	display: flex;
+	width: 100%;
+	margin: 16px 0;
+	padding: 8px;
+	gap: 8px;
+	background: var(--color-cool-5-90);
+    border: 1px solid var(--color-cool-4);
+	color: var(--color-text-primary);
+	border-radius: 8px;
+	pointer-events: all;
+	box-shadow: 0 0 10px #000;
+}
+
+#tht_terrainPaintToolbar, #tht_terrainEraseToolbar {
+	max-width: 680px;
+}
+
+.themed.theme-light .tht-toolbar {
+	background: url("/ui/parchment.jpg") repeat;
+	border-color: rgba(255, 255, 255, 0.8);
+}
+
+.tht-toolbar .tht-toolbar-item-label {
+	display: block;
+	margin-bottom: 2px;
+    text-align: center;
+	font-size: 0.8rem;
+    font-variant: small-caps;
+}
+
+.tht-toolbar .tht-toolbar-checkbox {
+	display: flex;
+	align-items: center;
+	margin-top: 1.25rem;
+	font-variant: small-caps;
+	white-space: nowrap;
+}
+
+.tht-toolbar .tht-toolbar-checkbox > input[type="checkbox"] {
+	margin: 0 0.4rem 0 0;
+}
+
+.tht-terrain-preview-box {
+	flex-shrink: 0;
+	height: 20px;
+	width: 20px;
+	flex: 0 0 20px;
+	border: 3px solid transparent;
+}
+
+.tht-toolbar .tht-toolbar-num-input {
+	flex: 0 0 60px;
+}
+
+.tht-terrain-type-palette {
+	max-height: 300px;
 	list-style: none;
 	margin: 0;
-	padding: 0;
+	padding: 8px;
 	overflow-y: auto;
 }
 
-ul.terrain-type-palette li {
+.tht-terrain-type-palette li {
 	padding: 4px;
 	display: flex;
 	border: 1px solid transparent;
 	border-radius: 3px;
-	margin-bottom: 4px;
-}
-
-ul.terrain-type-palette li,
-ul.terrain-type-palette li * {
 	cursor: pointer;
+	transition: all var(--transition-fn-fwl) var(--transition-duration-fwl);
 }
 
-ul.terrain-type-palette li.active {
-	border-color: var(--color-border-highlight-alt);
-	box-shadow: 0 0 6px inset var(--color-shadow-highlight);
+.tht-terrain-type-palette li:not(.active):hover {
+	color: var(--hovered-item-text-color-fwl);
+	background: var(--hovered-item-background-color-fwl);
+	border-color: var(--hovered-item-border-color-fwl);
 }
 
-ul.terrain-type-palette li .preview-box {
-	flex-shrink: 0;
-	height: 28px;
-	width: 28px;
-	margin: 4px;
-	border: 4px solid transparent;
+.tht-terrain-type-palette li.active {
+	color: var(--selected-item-text-color-fwl);
+	background: var(--selected-item-background-color-fwl);
+	border-color: var(--selected-item-border-color-fwl);
 }
 
-ul.terrain-type-palette li .terrain-type-name {
+.tht-terrain-type-palette li .terrain-type-name {
 	margin-left: 8px;
 	flex-grow: 1;
 	align-self: center;
 }
 
+.tht-terrain-paint-mode-context-icon {
+	align-self: flex-start;
+	margin-top: 2px;
+}
 
-/* --------------------- */
-/* Terrain Erase Palette */
-/* --------------------- */
-#tht_terrainErasePalette .erase-range-input::placeholder {
+#tht_terrainEraseToolbar .tht-erase-range-input::placeholder {
 	font: var(--fa-font-solid);
 	color: #999999;
+}
+
+#tht_terrainEraseToolbar .tht-erase-dropdown-button-label {
+	overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 1px;
 }
 
 
@@ -124,7 +182,7 @@ ul.terrain-type-palette li .terrain-type-name {
 #tht_terrainStackViewer {
 	position: static;
 	width: 240px;
-	margin: 0 4px 4px auto;
+	margin-bottom: -8px;
 }
 
 #tht_terrainStackViewer .terrain-layer-block {
@@ -134,11 +192,7 @@ ul.terrain-type-palette li .terrain-type-name {
 	text-align: center;
 }
 
-#tht_terrainStackViewer .terrain-layer-block-title {
-	margin: 0;
-	font-size: var(--font-size-14);
-}
-
+#tht_terrainStackViewer .terrain-layer-block-title,
 #tht_terrainStackViewer .terrain-layer-block-height {
 	margin: 0;
 	font-size: var(--font-size-12);
@@ -149,7 +203,7 @@ ul.terrain-type-palette li .terrain-type-name {
 	stroke: rgb(255 255 255 / 25%);
 }
 
-.theme-light #tht_terrainStackViewer .axis-line {
+.themed.theme-light #tht_terrainStackViewer .axis-line {
 	stroke: rgb(0 0 0 / 25%);
 }
 
@@ -158,7 +212,7 @@ ul.terrain-type-palette li .terrain-type-name {
 	fill: rgb(255 255 255 / 25%);
 }
 
-.theme-light #tht_terrainStackViewer .axis-line-label {
+.themed.theme-light #tht_terrainStackViewer .axis-line-label {
 	fill: rgb(0 0 0 / 25%);
 }
 
@@ -233,6 +287,7 @@ ul.terrain-type-palette li .terrain-type-name {
 #tht_terrainTypesConfig .terrain-type-list > li > button {
 	flex: 0 0 24px;
 	height: 24px;
+	min-height: unset;
 	padding: 0;
 	font-size: var(--font-size-12);
 	line-height: 24px;
@@ -243,7 +298,7 @@ ul.terrain-type-palette li .terrain-type-name {
 }
 
 #tht_terrainTypesConfig .terrain-type-list > li.active {
-	border-color: var(--color-border-highlight);
+	border-color: var(--color-warm-2);
 }
 
 #tht_terrainTypesConfig .terrain-type-edit-pane {
@@ -260,7 +315,7 @@ ul.terrain-type-palette li .terrain-type-name {
 	border: 1px solid transparent;
 }
 
-.theme-light #tht_terrainTypesConfig textarea {
+.themed.theme-light #tht_terrainTypesConfig textarea {
 	background: rgba(0, 0, 0, 0.1);
 	border: 1px solid var(--color-dark-6);
 }
@@ -335,7 +390,7 @@ ul.terrain-type-palette li .terrain-type-name {
 		0px 0px 60px 0px rgb(0 0 0 / 15%) inset;
 }
 
-.theme-light #tht_terrainTypesPresets .preset-list li {
+.themed.theme-light #tht_terrainTypesPresets .preset-list li {
 	border: 1px solid var(--color-border-light-primary);
 	box-shadow: 0px 0px 4px -1px rgb(0 0 0 / 50%),
 		0px 0px 60px 0px #FFFFFF inset;
@@ -350,7 +405,7 @@ ul.terrain-type-palette li .terrain-type-name {
 	background: rgb(11 10 19 / 62%);
 }
 
-.theme-light #tht_terrainTypesPresets .preset-header {
+.themed.theme-light #tht_terrainTypesPresets .preset-header {
 	background: rgb(240 240 240 / 70%);
 }
 
@@ -371,67 +426,69 @@ ul.terrain-type-palette li .terrain-type-name {
 	width: auto;
 }
 
-.theme-light #tht_terrainTypesPresets .preset-import-buttons button {
+.themed.theme-light #tht_terrainTypesPresets .preset-import-buttons button {
 	background: rgb(230 230 230 / 80%);
 }
 
 
-/* -------------------------- */
-/* Line of Sight Ruler Config */
-/* -------------------------- */
-#tht_lineOfSightRulerConfig .form-group-stacked label {
-	margin-bottom: 4px;
-}
-
-#tht_lineOfSightRulerConfig .form-group-stacked {
-	margin-bottom: 8px;
+/* --------------------------- */
+/* Line of Sight Ruler Toolbar */
+/* --------------------------- */
+#tht_lineOfSightRulerToolbar {
+	max-width: 400px;
 }
 
 
 /* -------------------------- */
 /* Token Line of Sight Config */
 /* -------------------------- */
-#tht_tokenLineOfSightConfig .token-selection-container {
-	display: flex;
-	align-items: center;
-	margin-bottom: 6px;
-	padding: 2px;
-	border-radius: 3px;
+#tht_tokenLineOfSightToolbar {
+	max-width: 740px;
 }
 
-.theme-dark #tht_tokenLineOfSightConfig .token-selection-container {
+#tht_tokenLineOfSightToolbar .token-selection-container {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 4px 12px 4px 4px;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+.theme-dark #tht_tokenLineOfSightToolbar .token-selection-container {
 	background: var(--color-cool-4);
 }
 
-.theme-light #tht_tokenLineOfSightConfig .token-selection-container {
+.themed.theme-light #tht_tokenLineOfSightToolbar .token-selection-container {
 	background: rgb(0 0 0 / 10%);
 	border: 1px solid var(--color-dark-6);
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container.is-selecting-token {
-	border-color: var(--color-border-highlight-alt);
-	box-shadow: 0 0 6px inset var(--color-shadow-highlight);
+#tht_tokenLineOfSightToolbar .token-selection-container.is-selecting-token {
+	border-color: var(--color-warm-2);
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container > * {
-	margin: 4px;
-}
-
-#tht_tokenLineOfSightConfig .token-selection-container .token-image {
+#tht_tokenLineOfSightToolbar .token-selection-container .token-image {
 	width: 32px;
 	height: 32px;
 	border: none;
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container .token-name {
+#tht_tokenLineOfSightToolbar .token-selection-container .token-name {
 	flex: 1 1 0;
+	width: 1px;
     white-space: nowrap;
 	overflow: hidden;
     text-overflow: ellipsis;
+	color: var(--color-light-3);
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container .token-action {
-	font-size: 1.2rem;
+.themed.theme-light {
+	color: var(--color-dark-2);
+}
+
+#board.tht-selecting-token {
+	cursor: crosshair !important;
 }
 
 
@@ -468,7 +525,7 @@ ul.terrain-type-palette li .terrain-type-name {
 	border-radius: 4px;
 }
 
-.theme-light .terrain-shape-choice-dialog .terrain-shape-list-item {
+.themed.theme-light .terrain-shape-choice-dialog .terrain-shape-list-item {
 	background: rgb(0 0 0 / 10%);
 	color: var(--color-dark-1);
 	border-color: 1px solid var(--color-dark-5);
@@ -479,8 +536,7 @@ ul.terrain-type-palette li .terrain-type-name {
 }
 
 .terrain-shape-choice-dialog .terrain-shape-list-radio:checked + .terrain-shape-list-item {
-	border-color: var(--color-border-highlight-alt);
-	box-shadow: 0px 0px 4px -1px rgb(0 0 0 / 50%), 0 0 6px inset var(--color-shadow-highlight);
+	border-color: var(--color-warm-2);
 }
 
 .terrain-shape-choice-dialog .terrain-shape-list-item > p {
@@ -489,47 +545,11 @@ ul.terrain-type-palette li .terrain-type-name {
 }
 
 
-/* ----- */
-/* Icons */
-/* ----- */
-.tht-icon-erase-shape {
-	position: relative;
-	font: var(--fa-font-solid);
-}
-
-.tht-icon-erase-shape:before {
-	content: "\f5ee";
-    position: absolute;
-    top: -0.25em;
-    transform: scale(0.9) translateX(-60%);
-}
-
-.tht-icon-erase-shape:after {
-	content: "\f12d";
-    position: absolute;
-    bottom: -0.125em;
-    transform: scale(0.7) translateX(-40%);
-}
-
-
 /* ------- */
 /* Utility */
 /* ------- */
 .align-items-center {
 	align-items: center;
-}
-
-.max-content-width {
-	width: max-content;
-}
-
-.margin-x-auto {
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.gap-1rem {
-	gap: 1rem;
 }
 
 .gap-05rem {
@@ -620,4 +640,28 @@ ul.terrain-type-palette li .terrain-type-name {
 
 .m-0 {
 	margin: 0 !important;
+}
+
+.mr-05rem {
+	margin-right: 0.5rem !important;
+}
+
+.p-0 {
+	padding: 0 !important;
+}
+
+.p-05rem {
+	padding: 0.5rem !important;
+}
+
+.text-align-center {
+	text-align: center !important;
+}
+
+.text-align-right {
+	text-align: right !important;
+}
+
+.opacity-04 {
+	opacity: 0.4 !important;
 }

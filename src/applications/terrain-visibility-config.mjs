@@ -14,7 +14,7 @@ export class TerrainVisibilityConfig extends ThtApplicationPositionMixin(LitAppl
 	static DEFAULT_OPTIONS = {
 		id: "tht_terrainVisibilityToggle",
 		window: {
-			title: "TERRAINHEIGHTTOOLS.PaletteTitle",
+			title: "TERRAINHEIGHTTOOLS.TerrainVisibilityConfig",
 			icon: "fas fa-eye-slash",
 			contentClasses: ["terrain-height-tool-window"],
 			resizable: true
@@ -38,16 +38,24 @@ export class TerrainVisibilityConfig extends ThtApplicationPositionMixin(LitAppl
 			<p class="flex0" style="margin-top: 0; font-size: 0.95em;">
 				${game.i18n.localize("TERRAINHEIGHTTOOLS.ClickToShowHideTerrain")}
 			</p>
-			<ul class="terrain-type-palette">
-				${terrainTypes$.value.map(terrainType => html`
-					<li
-						class=${computed(() => classMap({ active: !invisibleTerrainTypes$.value.has(terrainType.id) }))}
-						@click=${() => setSceneTerrainTypeVisible(canvas.scene, terrainType.id)}
-					>
-						<div class="preview-box" ${styleTerrainColor(terrainType, { textColorCssPropertyName: "" })}></div>
-						<label class="terrain-type-name">${terrainType.name}</label>
-					</li>
-				`)}
+			<ul class="tht-terrain-type-palette p-0">
+				${terrainTypes$.value.map(terrainType => {
+					const isVisible = () => !invisibleTerrainTypes$.value.has(terrainType.id);
+					return html`
+						<li
+							class=${computed(() => classMap({ "align-items-center": true, "opacity-04": !isVisible() }))}
+							@click=${() => setSceneTerrainTypeVisible(canvas.scene, terrainType.id)}
+						>
+							<i
+								class=${computed(() => classMap({ "far": true, "fa-eye": isVisible(), "fa-eye-slash": !isVisible(), "mr-05rem": true, "text-align-center": true }))}
+								style="flex: 0 0 1.25rem"
+								inert
+							></i>
+							<div class="tht-terrain-preview-box" ${styleTerrainColor(terrainType, { textColorCssPropertyName: "" })} inert></div>
+							<label class="terrain-type-name" inert>${terrainType.name}</label>
+						</li>
+					`;
+				})}
 			</ul>
 		`;
 	}

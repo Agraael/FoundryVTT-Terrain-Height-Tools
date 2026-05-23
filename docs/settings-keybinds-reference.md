@@ -3,7 +3,7 @@
 ## All Users
 
 ### Show Terrain Viewer on Token Layer
-If enabled, you will see a small window appear in the bottom right of your screen showing you a side view of the terrain you are hovering over.
+If enabled, you will see a small window appear in the bottom left of your screen showing you a side view of the terrain you are hovering over.
 
 ![Terrain Viewer](./img/terrain-viewer.webp)
 
@@ -49,7 +49,7 @@ THT will maintain the relative height above the ground for a token. For example,
 ### Terrain Types
 Button to open the terrain type configuration (see [GM guide for details](./getting-started-gm.md))
 
-### Terrain Height Map Below Tiles
+### Terrain Height Map Above Tiles
 This determines whether or not the terrain height map is shown above or below ground-level tiles. The height map is ALWAYS shown below overhead tiles.
 
 This can also be configured on a per-scene basis using the 'Terrain Height Map Layer' option on the 'Grid' tab of the scene config settings.

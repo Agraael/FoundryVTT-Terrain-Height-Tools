@@ -1,8 +1,33 @@
+:root {
+	/* Colours for list/menu/selection items */
+	--selected-item-text-color-fwl: var(--color-light-1);
+	--selected-item-background-color-fwl: #5252d7;
+	--selected-item-border-color-fwl: #5252d7;
+	--hovered-item-text-color-fwl: var(--color-text-emphatic, #f7f3e8);
+	--hovered-item-background-color-fwl: #2a292b;
+	--hovered-item-border-color-fwl: #634968;
+
+	--transition-fn-fwl: ease-out;
+	--transition-duration-fwl: 250ms;
+}
+
+.themed.theme-light {
+	/* Colours for list/menu/selection items */
+	--hovered-item-text-color-fwl: var(--color-text-emphatic);
+	--hovered-item-background-color-fwl: #f0f0e0;
+	--hovered-item-border-color-fwl: #999;
+}
+
 /* Using button.active could easily collide with other modules. */
 button.btn-active-fwl {
-	background: var(--button-hover-background-color);
-	color: var(--button-hover-text-color);
-	box-shadow: 0 0 5px var(--color-shadow-primary);
+	color: var(--selected-item-text-color-fwl);
+	background: var(--selected-item-background-color-fwl);
+	border-color: var(--selected-item-border-color-fwl);
+	box-shadow: 0 0 5px var(--selected-item-background-color-fwl);
+}
+
+.opacity-0 {
+	opacity: 0;
 }
 
 /* --------------------- */
@@ -12,10 +37,7 @@ button.btn-active-fwl {
 	--background-color: var(--color-cool-5, #9f8475);
     --border-color: var(--color-cool-3, #584a75);
     --text-color: var(--color-text-secondary, #e7d1b1);
-    --hover-text-color: var(--color-text-emphatic, #f7f3e8);
     --group-separator: var(--color-cool-4, #302831);
-    --hover-entry-border: #4a394d;
-    --hover-entry-background: #1c1c1c;
 
 	padding: 4px;
 	margin: 0;
@@ -34,43 +56,59 @@ button.btn-active-fwl {
 	--background-color: #d9d8c8;
     --border-color: #999;
     --text-color: var(--color-text-secondary);
-    --hover-text-color: var(--color-text-emphatic);
     --group-separator: #999;
-    --hover-entry-border: #999;
-    --hover-entry-background: #f0f0e0;
 }
 
-.dropdown-menu-fwl > li:not(.context-menu-fwl-separator) {
+.dropdown-menu-fwl > .dropdown-menu-fwl-item {
 	display: flex;
 	align-items: center;
 	padding: 6px;
 	border: 1px solid transparent;
 	font-size: var(--font-size-12);
 	cursor: pointer;
-	transition: all ease-out 200ms;
+	transition: all var(--transition-fn-fwl) var(--transition-duration-fwl);
 }
 
-.dropdown-menu-fwl.dropdown-menu-fwl-hover > li:not(.context-menu-fwl-separator):hover,
+.dropdown-menu-fwl.dropdown-menu-fwl-hover > .dropdown-menu-fwl-item:hover {
+	color: var(--hovered-item-text-color-fwl);
+	background: var(--hovered-item-background-color-fwl);
+	border-color: var(--hovered-item-border-color-fwl);
+}
+
 .dropdown-menu-fwl > li.active {
-	border-color: var(--hover-entry-border);
-    background: var(--hover-entry-background);
-    color: var(--hover-text-color);
+	color: var(--selected-item-text-color-fwl);
+	background: var(--selected-item-background-color-fwl);
+	border-color: var(--selected-item-border-color-fwl);
 }
 
 .dropdown-menu-fwl > li > i:first-child {
 	margin-right: 8px;
 }
 
-.dropdown-menu-fwl > li > span {
+.dropdown-menu-fwl > li > div {
 	flex-grow: 1;
 }
 
-.dropdown-menu-fwl > li > i:last-child {
+.dropdown-menu-fwl .dropdown-menu-fwl {
+	flex-grow: 1;
+}
+
+.dropdown-menu-fwl .dropdown-menu-fwl-item-hint {
+	margin-top: 4px;
+	font-size: 0.95em;
+	opacity: 0.6;
+}
+
+.dropdown-menu-fwl .dropdown-menu-fwl-item-caret {
 	margin-left: 8px;
 	line-height: 15px;
 }
 
-.dropdown-menu-fwl > li.context-menu-fwl-separator {
+.dropdown-menu-fwl > li.dropdown-menu-fwl-separator {
 	margin: 4px 0;
 	border-bottom: 1px solid var(--group-separator);
+}
+
+.dropdown-menu-fwl > li.dropdown-menu-fwl-header {
+	padding: 4px 0 4px 12px;
 }

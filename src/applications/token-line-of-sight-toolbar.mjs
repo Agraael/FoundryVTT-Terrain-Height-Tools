@@ -6,16 +6,16 @@ import { createRef, ref } from "lit/directives/ref.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { tokenRelativeHeights } from "../consts.mjs";
 import { includeNoHeightTerrain$, tokenLineOfSightConfig$ } from "../stores/line-of-sight.mjs";
-import { abortableSubscribe } from "../utils/signal-utils.mjs";
+import { abortableEffect, abortableSubscribe } from "../utils/signal-utils.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
-import { ThtApplicationPositionMixin } from "./mixins/tht-application-position-mixin.mjs";
+import { ThtToolbarPositionMixin } from "./mixins/tht-toolbar-position-mixin.mjs";
 
 const { ApplicationV2 } = foundry.applications.api;
 
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
 
-export class TokenLineOfSightConfig extends ThtApplicationPositionMixin(LitApplicationMixin(ApplicationV2)) {
+export class TokenLineOfSightToolbar extends ThtToolbarPositionMixin(LitApplicationMixin(ApplicationV2)) {
 
 	/** @type {Signal<1 | 2 | undefined>} */
 	#selectingToken$ = signal(undefined);
@@ -23,48 +23,42 @@ export class TokenLineOfSightConfig extends ThtApplicationPositionMixin(LitAppli
 	_isSelectingToken$ = computed(() => typeof this.#selectingToken$.value === "number");
 
 	static DEFAULT_OPTIONS = {
-		id: "tht_tokenLineOfSightConfig",
+		id: "tht_tokenLineOfSightToolbar",
+		classes: ["tht-toolbar", "flexrow"],
 		window: {
-			title: "TERRAINHEIGHTTOOLS.TokenLineOfSightConfigTitle",
-			icon: "fas fa-compass-drafting",
-			contentClasses: ["terrain-height-tool-window"]
-		},
-		position: {
-			width: 300
+			frame: false,
+			positioned: false
 		}
 	};
 
-	/** @type {TokenLineOfSightConfig | undefined} */
+	/** @type {TokenLineOfSightToolbar | undefined} */
 	static current;
 
 	constructor(...args) {
 		super(...args);
-		TokenLineOfSightConfig.current = this;
-	}
-
-	/** @override */
-	async _renderFrame(options) {
-		const frame = await super._renderFrame(options);
-		this.window.close.remove(); // Remove close button
-		return frame;
+		TokenLineOfSightToolbar.current = this;
 	}
 
 	/** @override */
 	_renderHTML() {
 		return html`
-			<p style="margin-top: 0">${l("TERRAINHEIGHTTOOLS.TokenLineOfSightConfigHint")}</p>
+			<div>
+				<span class="tht-toolbar-item-label">Token 1</span>
+				${this.#renderTokenPicker(1, tokenLineOfSightConfig$.token1, tokenLineOfSightConfig$.h1)}
+			</div>
 
-			${this.#renderTokenPicker(1, tokenLineOfSightConfig$.token1, tokenLineOfSightConfig$.h1)}
+			<div>
+				<span class="tht-toolbar-item-label">Token 2</span>
+				${this.#renderTokenPicker(2, tokenLineOfSightConfig$.token2, tokenLineOfSightConfig$.h2)}
+			</div>
 
-			${this.#renderTokenPicker(2, tokenLineOfSightConfig$.token2, tokenLineOfSightConfig$.h2)}
-
-			<label>
+			<label class="tht-toolbar-checkbox flex0">
 				<input
 					type="checkbox"
 					name="rulerIncludeNoHeightTerrain"
 					.checked=${includeNoHeightTerrain$}
 					@change=${e => includeNoHeightTerrain$.value = e.target.checked}>
-				${l("TERRAINHEIGHTTOOLS.IncludeZones")}
+				<span inert>${l("TERRAINHEIGHTTOOLS.IncludeZones")}</span>
 			</label>
 		`;
 	}
@@ -100,10 +94,14 @@ export class TokenLineOfSightConfig extends ThtApplicationPositionMixin(LitAppli
 		}[height$]));
 
 		return html`
-			<div class=${computed(() => classMap({
-				"token-selection-container": true,
-				"is-selecting-token": this.#selectingToken$.value === idx
-			}))}>
+			<div
+				class=${computed(() => classMap({
+					"token-selection-container": true,
+					"is-selecting-token": this.#selectingToken$.value === idx
+				}))}
+				data-tooltip=${l("TERRAINHEIGHTTOOLS.SelectToken")}
+				@click=${() => this.#beginSelectToken(idx)}
+			>
 				<img
 					class="token-image"
 					src=${tokenImageSrc$}
@@ -112,28 +110,33 @@ export class TokenLineOfSightConfig extends ThtApplicationPositionMixin(LitAppli
 				<span class="token-name">${tokenName$}</span>
 				<a
 					class="token-action"
-					data-tooltip=${l("TERRAINHEIGHTTOOLS.SelectToken")}
-					@click=${() => this.#beginSelectToken(idx)}
-				>
-					<i class="fas fa-bullseye-pointer"></i>
-				</a>
-				<a
-					class="token-action"
 					data-tooltip=${heightButtonTooltip$}
-					@click=${() => height$.value = (height$.value + 0.5) % 1.5}
+					@click=${e => {
+						e.stopPropagation();
+						height$.value = (height$.value + 0.5) % 1.5;
+					}}
 					${ref(heightButtonRef)}
 				>
-					<i class=${heightButtonIconClass$} style="width:20px"></i>
+					<i class=${heightButtonIconClass$} style="width:20px;text-align:center"></i>
 				</a>
 				<a
 					class="token-action"
 					data-tooltip=${l("TERRAINHEIGHTTOOLS.ClearSelectedToken")}
-					@click=${() => this.#clearSelectedToken(token$)}
+					@click=${e => this.#clearSelectedToken(e, token$)}
 				>
 					<i class="fas fa-xmark"></i>
 				</a>
 			</div>
 		`;
+	}
+
+	/** @override */
+	_onFirstRender(...args) {
+		super._onFirstRender(...args);
+		abortableEffect(() => {
+			const board = document.querySelector("#board");
+			board?.classList[this._isSelectingToken$.value ? "add" : "remove"]("tht-selecting-token");
+		}, this.closeSignal);
 	}
 
 	/** @override */
@@ -176,8 +179,12 @@ export class TokenLineOfSightConfig extends ThtApplicationPositionMixin(LitAppli
 		this.#selectingToken$.value = undefined;
 	}
 
-	/** @param {Signal<Token | undefined>} token$ */
-	#clearSelectedToken(token$) {
+	/**
+	 * @param {Event} e
+	 * @param {Signal<Token | undefined>} token$
+	 */
+	#clearSelectedToken(e, token$) {
+		e.stopPropagation();
 		token$.value = undefined;
 		this.#selectingToken$.value = undefined;
 	}

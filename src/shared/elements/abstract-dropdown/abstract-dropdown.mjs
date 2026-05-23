@@ -23,6 +23,10 @@ export class AbstractDropdownElement extends LitElement {
 		this._isOpen = false;
 	}
 
+	get dropdownElement() {
+		return this.#dropdownContainer;
+	}
+
 	render() {
 		return html`
 			<div
@@ -30,12 +34,32 @@ export class AbstractDropdownElement extends LitElement {
 					"dropdown-button-fwl": true,
 					"dropdown-button-fwl-disabled": this.disabled
 				})}
-				@mousedown=${() => this._isOpen = !this._isOpen}
+				@mousedown=${() => this.toggle()}
 			>
 				${this._renderButton()}
 				<i class="fas fa-chevron-down"></i>
 			</div>
 		`;
+	}
+
+	open() {
+		const canOpen = this.dispatchEvent(new Event("open", { cancelable: true }));
+		if (!canOpen) return;
+
+		this._isOpen = true;
+		game.tooltip.deactivate(); // If any tooltips are open, immediately close them
+	}
+
+	close() {
+		const canOpen = this.dispatchEvent(new Event("close", { cancelable: true }));
+		if (!canOpen) return;
+
+		this._isOpen = false;
+	}
+
+	toggle() {
+		if (this._isOpen) this.close();
+		else this.open();
 	}
 
 	/**
@@ -65,7 +89,11 @@ export class AbstractDropdownElement extends LitElement {
 
 		if (!this.#dropdownContainer) {
 			this.#dropdownContainer = document.createElement("div");
-			this.#dropdownContainer.classList.add("dropdown-container-fwl", "application", ...this.constructor.dropdownClasses.split(" ").filter(Boolean));
+			this.#dropdownContainer.classList.add(
+				"dropdown-container-fwl", "application",
+				...(this.dropdownClasses ?? "").split(" ").filter(Boolean),
+				...(this.constructor.dropdownClasses ?? "").split(" ").filter(Boolean)
+			);
 			document.body.appendChild(this.#dropdownContainer);
 		}
 
@@ -120,7 +148,7 @@ export class AbstractDropdownElement extends LitElement {
 			|| e.target.closest(this.tagName) === this;
 
 		if (!isInside)
-			this._isOpen = false;
+			this.close();
 	};
 
 	createRenderRoot() {

@@ -22,6 +22,8 @@ import { TerrainTypesPreset } from "./terrain-types-presets.mjs";
 /** @typedef {(context: { app: TerrainTypesConfig; terrainType: TerrainType; index: number; }) => string | HTMLElement | import("lit").TemplateResult} UiPartRenderer */
 
 const { ApplicationV2, DialogV2 } = foundry.applications.api;
+const { FontConfig } = foundry.applications.settings.menus;
+const { FormDataExtended } = foundry.applications.ux;
 
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
@@ -155,6 +157,8 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 					<i class="fas fa-download"></i>
 					<label>${l("TERRAINHEIGHTTOOLS.ExportTerrainTypes")}</label>
 				</button>
+			</footer>
+			<footer class="form-footer">
 				<button type="button" @click=${() => this.#saveTerrainTypes()}>
 					<i class="fas fa-save"></i>
 					<label>${l("Save Changes")}</label>
@@ -1061,7 +1065,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 					icon: "<i class='fas fa-upload'></i>",
 					label: l("TERRAINHEIGHTTOOLS.ImportCombine"),
 					action: "importCombine",
-					callback: (_event, _target, element) => {
+					callback: (_event, _target, { element }) => {
 						if (!this._importTerrainTypeSettings(element.querySelector("textarea").value, false))
 							throw new Error("Invalid data"); // Throw as an error to prevent dialog from closing
 					}
@@ -1070,7 +1074,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 					icon: "<i class='fas fa-upload'></i>",
 					label: l("TERRAINHEIGHTTOOLS.ImportReplace"),
 					action: "importReplace",
-					callback: (_event, _target, element) => {
+					callback: (_event, _target, { element }) => {
 						if (!this._importTerrainTypeSettings(element.querySelector("textarea").value, true))
 							throw new Error("Invalid data"); // Throw as an error to prevent dialog from closing
 					}

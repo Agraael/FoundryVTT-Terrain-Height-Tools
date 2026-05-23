@@ -12,6 +12,9 @@ import { debug } from "../../utils/log.mjs";
 import { abortableEffect, abortableSubscribe } from "../../utils/signal-utils.mjs";
 import { TerrainShapeGraphic } from "./terrain-shape-graphic.mjs";
 
+const { loadTexture } = foundry.canvas;
+const { CanvasLayer } = foundry.canvas.layers;
+
 /**
  * Layer for rendering terrain shapes to the canvas.
  */
@@ -39,12 +42,8 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 	#tearDownController;
 
 	#graphicSortLayer$ = computed(() => {
-		// Note that during the v11 -> v12 migration, I made the mistake of getting this setting backwards, so when this
-		// value is TRUE that actually means that the terrain layer should be rendered BELOW the tiles.
-		// The UI labels have been corrected so that users have the expected behaviour, but the name of the flags and
-		// settings have not been changed so that users do not have to re-do their config.
-		const renderBelowTiles = sceneRenderAboveTilesChoice$.value ?? terrainLayerAboveTilesDefault$.value;
-		return renderBelowTiles ? 490 : 510;
+		const renderAboveTiles = sceneRenderAboveTilesChoice$.value ?? terrainLayerAboveTilesDefault$.value;
+		return renderAboveTiles ? 510 : 490;
 	});
 
 	constructor() {
@@ -235,10 +234,15 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 	 * @param {TerrainShapeGraphic[]} [options.shapes] If provided, only updates the mask on these shapes
 	 */
 	_updateShapeMasks({ shapes } = {}) {
+		// Ensure we track this OUTSIDE of the for loop, otherwise when setting up the initial effect, if there are no
+		// shapes, then the effect won't know to track these signals.
+		const isEditLayerActive = this.#isEditLayerActive$.value;
+		const isHighlightingObjects = this.#isHighlightingObjects$.value;
+
 		for (const shape of shapes ?? this.#allShapeGraphics) {
 			const hasMask = !shape.terrainType.isAlwaysVisible
-				&& !this.#isEditLayerActive$.value
-				&& !this.#isHighlightingObjects$.value;
+				&& !isEditLayerActive
+				&& !isHighlightingObjects;
 			shape.mask = hasMask ? this.#cursorRadiusMask : null;
 		}
 	}
@@ -261,11 +265,11 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 			canvas.primary.removeChild(this.#cursorRadiusMask);
 		}
 
-		// Stop here if not applying a new mask. We are not applying a mask if:
-		// - The radius is 0, i.e. no mask
-		// - If there are no shapes; if there are no shapes to apply the mask to, it will appear as an actual white
-		//   circle on the canvas.
-		if (radius <= 0) return;
+		// Stop here the mas radius is 0 (i.e. no mask to be drawn)
+		if (radius <= 0) {
+			this.#cursorRadiusMask = null;
+			return;
+		}
 
 		// Create a radial gradient texture
 		radius *= canvas.grid.size;

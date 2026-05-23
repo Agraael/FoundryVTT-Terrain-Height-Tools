@@ -1,6 +1,6 @@
 import { effect } from "@preact/signals-core";
-import { LineOfSightRulerConfig } from "../applications/line-of-sight-ruler-config.mjs";
-import { TokenLineOfSightConfig } from "../applications/token-line-of-sight-config.mjs";
+import { LineOfSightRulerToolbar } from "../applications/line-of-sight-ruler-toolbar.mjs";
+import { TokenLineOfSightToolbar } from "../applications/token-line-of-sight-toolbar.mjs";
 import { moduleName, settingNames, terrainHeightEditorControlName, tools } from "../consts.mjs";
 import { heightMap } from "../geometry/height-map.mjs";
 import { LineOfSightRulerLayer } from "../layers/line-of-sight-ruler-layer.mjs";
@@ -15,79 +15,91 @@ const terrainHeightLayerToggleButtonName = "terrainHeightLayerToggle";
  */
 export function registerSceneControls(controls) {
 	// Add a LOS ruler and toggle map button in the token controls
-	controls.find(grp => grp.name === "token").tools.push(
-		{
+	Object.assign(controls.tokens.tools, {
+		[tools.lineOfSight]: {
 			name: tools.lineOfSight,
-			title: game.i18n.localize("CONTROLS.TerrainHeightToolsLineOfSightRuler"),
-			icon: "fas fa-ruler-combined"
-		},
-		{
-			name: tools.tokenLineOfSight,
-			title: game.i18n.localize("CONTROLS.TerrainHeightToolsTokenLineOfSight"),
-			icon: "fas fa-compass-drafting",
-			onClick: () => {
-				LineOfSightRulerLayer.current?._autoSelectTokenLosTargets();
+			title: "CONTROLS.TerrainHeightToolsLineOfSightRuler",
+			icon: "fas fa-ruler-combined",
+			toolclip: {
+				heading: "CONTROLS.TerrainHeightToolsLineOfSightRuler",
+				items: [
+					{ heading: "CONTROLS.TerrainHeightToolsTokenLineOfSightDrawRuler", reference: "CONTROLS.ClickDrag" },
+					{ paragraph: "CONTROLS.TerrainHeightToolsLineOfSightRulerP" }
+				]
 			}
 		},
-		{
+		[tools.tokenLineOfSight]: {
+			name: tools.tokenLineOfSight,
+			title: "CONTROLS.TerrainHeightToolsTokenLineOfSight",
+			icon: "fas fa-compass-drafting",
+			onChange: () => {
+				LineOfSightRulerLayer.current?._autoSelectTokenLosTargets();
+			},
+			toolclip: {
+				heading: "CONTROLS.TerrainHeightToolsTokenLineOfSight",
+				items: [
+					{
+						paragraph: "CONTROLS.TerrainHeightToolsTokenLineOfSightP"
+					}
+				]
+			}
+		},
+		[terrainHeightLayerToggleButtonName]: {
 			name: terrainHeightLayerToggleButtonName,
-			title: game.i18n.localize("CONTROLS.TerrainHeightToolsLayerToggle"),
+			title: "CONTROLS.TerrainHeightToolsLayerToggle",
 			icon: "fas fa-chart-simple",
-			onClick: isActive => game.settings.set(moduleName, settingNames.showTerrainHeightOnTokenLayer, isActive),
+			onChange: (_event, isActive) => game.settings.set(moduleName, settingNames.showTerrainHeightOnTokenLayer, isActive),
 			toggle: true,
-			active: game.settings.get(moduleName, settingNames.showTerrainHeightOnTokenLayer)
+			active: game.settings.get(moduleName, settingNames.showTerrainHeightOnTokenLayer),
+			toolclip: {
+				heading: "CONTROLS.TerrainHeightToolsLayerToggle",
+				items: [
+					{
+						paragraph: "CONTROLS.TerrainHeightToolsLayerToggleP"
+					}
+				]
+			}
 		}
-	);
+	});
 
 	// Menu for editing the terrain
-	controls.push({
+	controls[terrainHeightEditorControlName] = {
 		name: terrainHeightEditorControlName,
-		title: game.i18n.localize("CONTROLS.GroupTerrainHeightTools"),
+		title: "CONTROLS.GroupTerrainHeightTools",
 		icon: "fas fa-chart-simple",
 		layer: "terrainHeightEditorLayer",
 		activeTool: tools.paint,
 		visible: game.user.isGM,
-		tools: [
-			{
+		onChange: (_event, isActive) => {
+			if (isActive)
+				canvas.terrainHeightEditorLayer?.activate();
+		},
+		tools: {
+			[tools.paint]: {
 				name: tools.paint,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsPaint"),
+				title: "CONTROLS.TerrainHeightToolsPaint",
 				icon: "fas fa-paintbrush-alt"
 			},
-			{
-				name: tools.fill,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsFill"),
-				icon: "fas fa-fill-drip"
-			},
-			{
+			[tools.erase]: {
 				name: tools.erase,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsErase"),
+				title: "CONTROLS.TerrainHeightToolsErase",
 				icon: "fas fa-eraser"
 			},
-			{
-				name: tools.eraseShape,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsEraseShape"),
-				icon: "tht-icon-erase-shape"
-			},
-			{
-				name: tools.pipette,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsPipette"),
-				icon: "fas fa-eye-dropper"
-			},
-			{
+			[tools.terrainVisibility]: {
 				name: tools.terrainVisibility,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsTerrainVisibility"),
+				title: "CONTROLS.TerrainHeightToolsTerrainVisibility",
 				icon: "fas fa-eye-slash"
 			},
-			{
+			[tools.convert]: {
 				name: tools.convert,
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsShapeConvert"),
+				title: "CONTROLS.TerrainHeightToolsShapeConvert",
 				icon: "fas fa-arrow-turn-right"
 			},
-			{
+			clear: {
 				name: "clear",
-				title: game.i18n.localize("CONTROLS.TerrainHeightToolsClear"),
+				title: "CONTROLS.TerrainHeightToolsClear",
 				icon: "fas fa-trash",
-				onClick: async () => {
+				onChange: async () => {
 					const shouldDelete = await foundry.applications.api.DialogV2.confirm({
 						window: { title: "TERRAINHEIGHTTOOLS.ClearConfirmTitle" },
 						content: `<p>${game.i18n.format("TERRAINHEIGHTTOOLS.ClearConfirmContent")}</p>`,
@@ -98,15 +110,13 @@ export function registerSceneControls(controls) {
 				},
 				button: true
 			}
-		]
-	});
+		}
+	};
 }
 
 // When the 'show terrain height on token layer' setting changes, update the button's active state
 showTerrainHeightOnTokenLayer$.subscribe(isActive => {
-	const toggleButton = ui.controls
-		?.controls?.find(x => x.name == "token")
-		?.tools.find(x => x.name == terrainHeightLayerToggleButtonName);
+	const toggleButton = ui.controls?.controls.tokens.tools[terrainHeightLayerToggleButtonName];
 
 	if (toggleButton) {
 		toggleButton.active = isActive;
@@ -116,14 +126,14 @@ showTerrainHeightOnTokenLayer$.subscribe(isActive => {
 
 effect(() => {
 	// When the LoS ruler is the active tool, show the LoS ruler config application
-	if (activeControl$.value === "token" && activeTool$.value === tools.lineOfSight)
-		(LineOfSightRulerConfig.current ??= new LineOfSightRulerConfig()).render(true);
+	if (activeControl$.value === "tokens" && activeTool$.value === tools.lineOfSight)
+		(LineOfSightRulerToolbar.current ??= new LineOfSightRulerToolbar()).render(true);
 	else
-		LineOfSightRulerConfig.current?.close({ animate: false });
+		LineOfSightRulerToolbar.current?.close({ animate: false });
 
 	// When token LoS is the active tool, show the toklen LoS config application
-	if (activeControl$.value === "token" && activeTool$.value === tools.tokenLineOfSight)
-		(TokenLineOfSightConfig.current ??= new TokenLineOfSightConfig()).render(true);
+	if (activeControl$.value === "tokens" && activeTool$.value === tools.tokenLineOfSight)
+		(TokenLineOfSightToolbar.current ??= new TokenLineOfSightToolbar()).render(true);
 	else
-		TokenLineOfSightConfig.current?.close({ animate: false });
+		TokenLineOfSightToolbar.current?.close({ animate: false });
 });

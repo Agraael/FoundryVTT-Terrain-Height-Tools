@@ -52,59 +52,56 @@ You will be presented with six buttons:
 
 #### 1. Paint
 
-This is the tool that allows you to mark terrain on your map. When you select this tool, you will be presented with the terrain palette window.
+This is the tool that allows you to mark terrain on your map. When you select this tool, you will be presented with the terrain painting toolbar.
 
-![Terrain Paint Palette](./img/terrain-paint-palette.webp)
+![Terrain Paint Toolbar](./img/terrain-paint-toolbar.webp)
 
-You will need to select which terrain type to paint on the map, and if it is not a zone you can also set the height and elevation of that terrain.
+You will need to select a tool and which terrain type to paint on the map, and if it is not a zone, you can also set the height and elevation or top and bottom of that terrain.
 
-> [!NOTE]
-> Height is how big the terrain actually is; elevation is how high off the ground it is.
-
-The _Clear/Add/Replace_ buttons are for determining how your paint brush interacts with terrain that already exists on the map.
+Within the settings dropdown you can choose _Clear/Add/Replace_ modes which for determining how your paint brush interacts with terrain that already exists on the map.
 - _Clear_ will wipe clean any cells that you paint. This means that only your newly-painted terrain will be there. This is how THT operated prior to v0.4.0.
 - _Add_ will merge your new terrain with the existing terrain without overwriting it.
 - _Replace_ will merge you new terrain with the existing terrain, overwriting anything that overlaps.
 
 ![Paint modes](./img/paint-modes.drawio.png)
 
-Then, just click and drag on the map to draw the terrain in the cells! Terrain will automatically merge with adjacent terrain that is of the same type, elevation and height.
+Then, just click and drag on the scene to draw the terrain! Terrain will automatically merge with adjacent terrain that is of the same type, elevation and height.
 
 #### 2. Erase
 
-The erase tool allows you to erase certain cells from the map.
+The erase tool allows you to erase terrain from the map.
 
-![Terrain Erase Palette](./img/terrain-erase-palette.webp)
+![Terrain Erase Toolbar](./img/terrain-erase-toolbar.webp)
 
-The palette for the eraser is similar to the paint palette, but works slightly differently.
+The erase toolbar similar to the paint toolbar, but works slightly differently.
 
-By default, when you click this tool it will erase everything from the cells that you click on.
+By default, when you use the eraser it will erase everything from the area that you draw.
 
-You can toggle individual terrain types on or off. If a terrain type is turned off, it won't be erased. You can use the cicle icons at the bottom of the list to toggle all types on, off or invert the selection respectively.
+You can however toggle individual terrain types on or off in the "terrain types to erase" dropdown. If a terrain type is turned off, it won't be erased. You can use the cicle icons at the bottom of the list to toggle all types on, off or invert the selection respectively.
 
 You can also specify a range to delete by providing either a top and/or a bottom value. Anything between these two values is deleted (zones will always be deleted regardless of the values here). This will effectively allow you to carve areas out of the terrain too!
 
 Together, these filters allow you to specify exactly what should and shouldn't be deleted.
 
-#### 3. Erase Shape
+There is one tool that is slightly different, the 'Erase shape' tool. This tool provides a quick way of erasing an entire shape from the canvas. Select the tool, then click on a shape to remove it. If there are multiple terrains in the cell you clicked, you will be asked which one you wish to delete. This deletes the whole shape in one, and is not beholden to the top/bottom or terrain type filters.
 
-This tool provides a quick way of erasing an entire shape from the canvas. Select the tool, then click on a cell containing a shape to remove it. If there are multiple terrains in the cell you clicked, you will be asked which one you wish to delete.
+#### 3. Terrain visibility
 
-#### 4. Copy Terrain Configuration
+Clicking this button will open up a menu where you can show or hide terrain types from the current scene.
 
-This tool allows you to copy the configuration (terrain type, height and elevation) of a shape that has already been created. Click on the tool, then click on a cell containing a shape to copy its configuration. If there are multiple terrains in the cell you clicked, you will be asked which one to copy from.
+For example this may be good if: you have a terrain type you want to reveal as a surprise the players later; or perhaps once the players have positioned their tokens you want to quickly hide the region where they are allowed to do so.
 
-#### 5. Convert Shapes to Drawings/Walls
+#### 4. Convert Shapes
 
-This tool allows you to convert a terrain shape to a Foundry drawing or a set of Foundry walls.
+This tool allows you to convert a terrain shape to a Foundry drawing, a set of Foundry walls, or a scene region.
 
 Clicking on the tool will open a window that allows you to choose which conversion should happen, and whether you wish to erase the shape after converting it.
 
 Click on a shape to convert it. If there are multiple shapes where you clicked, you will be asked which one you wish to convert.
 
-Note that when converting to a Foundry shape, the label may move. This is because Foundry always places the label at the geometric center of the shape, but THT tries to be a bit clever about the placement. If you don't like where the label is after converting, the easiest solution is to edit the shape, remove the label; then create a separate label which you can position independently.
+Note that when converting to a Foundry drawing, the label may move. This is because Foundry always places the label at the geometric center of the shape, but THT tries to be a bit clever about the placement. If you don't like where the label is after converting, the easiest solution is to edit the shape, remove the label; then create a separate label which you can position independently.
 
-#### 6. Clear Height Map
+#### 5. Clear Height Map
 
 This button is the nuclear option for terrain erasure. Every terrain on the map will be deleted! (Don't worry, you'll be asked to confirm first).
 

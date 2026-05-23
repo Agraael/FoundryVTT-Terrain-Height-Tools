@@ -24,10 +24,7 @@ export const geometryTolerance = 1e-10;
 /** @enum {keyof typeof tools} */
 export const tools = /** @type {const} */ ({
 	paint: "paint",
-	fill: "fill",
 	erase: "erase",
-	eraseShape: "eraseShape",
-	pipette: "pipette",
 	lineOfSight: "terrainHeightToolsLineOfSight",
 	tokenLineOfSight: "terrainHeightToolsTokenLineOfSight",
 	convert: "convert",
@@ -39,7 +36,10 @@ export const drawingModeTypes = /** @type {const} */ ({
 	gridCells: "gridCells",
 	rectangle: "rectangle",
 	ellipse: "ellipse",
-	customPoly: "customPoly"
+	customPoly: "customPoly",
+	fill: "fill",
+	pipette: "pipette",
+	deleteShape: "deleteShape"
 });
 
 /** @enum {keyof typeof settingNames} */
@@ -48,6 +48,7 @@ export const settingNames = /** @type {const} */ ({
 	displayLosMeasurementGm: "displayLosMeasurementGm",
 	displayLosMeasurementPlayer: "displayLosMeasurementPlayer",
 	otherUserLineOfSightRulerOpacity: "otherUserLineOfSightRulerOpacity",
+	paintToolbarUseHeightElevation: "paintToolbarUseHeightElevation",
 	showTerrainHeightOnTokenLayer: "showTerrainHeightOnTokenLayer",
 	showTerrainStackViewerOnTokenLayer: "showTerrainStackViewerOnTokenLayer",
 	showZonesAboveNonZones: "showZonesAboveNonZones",

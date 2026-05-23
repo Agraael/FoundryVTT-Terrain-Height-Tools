@@ -81,7 +81,7 @@ class StyleTerrainColorDirective extends AsyncDirective {
 			? premultiplyKeyframes(terrainType.textColorAnimation.keyframes)
 			: null;
 
-		this.#updateCss();
+		Promise.resolve().then(() => this.#updateCss());
 	}
 
 	reconnected() {
@@ -99,27 +99,29 @@ class StyleTerrainColorDirective extends AsyncDirective {
 		const { fillColorCssPropertyName, lineColorCssPropertyName, lineWidthCssPropertyName, textColorCssPropertyName } = this.#options;
 
 		// Fill color
-		if (fillColorCssPropertyName.length && this.#terrainType.fillType !== CONST.DRAWING_FILL_TYPES.NONE) {
+		if (fillColorCssPropertyName.length) {
 			if (this.#fillPremultipliedKeyframes) {
 				const { duration, easingFunc } = this.#terrainType.fillColorAnimation;
 				const { color, alpha } = getColorAnimationValue(this.#fillPremultipliedKeyframes, duration, easingFunc, now);
 				this.#element.style.setProperty(fillColorCssPropertyName, toCssRgbString(unpremultiply(color, alpha), alpha));
 
 			} else {
-				const { fillColor, fillOpacity } = this.#terrainType;
+				let { fillColor, fillOpacity } = this.#terrainType;
+				if (this.#terrainType.fillType === CONST.DRAWING_FILL_TYPES.NONE) fillOpacity = 0;
 				this.#element.style.setProperty(fillColorCssPropertyName, toCssRgbString(fillColor, fillOpacity));
 			}
 		}
 
 		// Line color
-		if (lineColorCssPropertyName.length && this.#terrainType.lineType !== LINE_TYPES.NONE) {
+		if (lineColorCssPropertyName.length) {
 			if (this.#linePremultipliedKeyframes) {
 				const { duration, easingFunc } = this.#terrainType.lineColorAnimation;
 				const { color, alpha } = getColorAnimationValue(this.#linePremultipliedKeyframes, duration, easingFunc, now);
 				this.#element.style.setProperty(lineColorCssPropertyName, toCssRgbString(unpremultiply(color, alpha), alpha));
 
 			} else {
-				const { lineColor, lineOpacity } = this.#terrainType;
+				let { lineColor, lineOpacity } = this.#terrainType;
+				if (this.#terrainType.lineType === LINE_TYPES.NONE) lineOpacity = 0;
 				this.#element.style.setProperty(lineColorCssPropertyName, toCssRgbString(lineColor, lineOpacity));
 			}
 		}

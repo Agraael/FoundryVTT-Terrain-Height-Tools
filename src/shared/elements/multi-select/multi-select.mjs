@@ -95,7 +95,10 @@ export class MultiSelect extends LitElement {
 		litRender(html`<menu class="dropdown-menu-fwl dropdown-menu-fwl-hover">
 			${this.items.map(item => html`
 				<li
-					class=${classMap({ checked: selectedValues.has(this.#getItemValue(item)) })}
+					class=${classMap({
+						"dropdown-menu-fwl-item": true,
+						"checked": selectedValues.has(this.#getItemValue(item))
+					})}
 					@click=${() => this.#toggleItem(item)}>
 					<i class="fas fa-check"></i>
 					<span>${this.#getItemLabel(item)}</span>

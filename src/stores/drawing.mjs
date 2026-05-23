@@ -1,7 +1,7 @@
 /** @import { Signal } from "@lit-labs/preact-signals" */
-/** @import { drawingModeTypes, terrainFillMode, terrainPaintMode } from "../consts.mjs" */
+/** @import { drawingModeTypes, terrainPaintMode } from "../consts.mjs" */
 /** @import { DeepSignal } from "../utils/signal-utils.mjs"; */
-import { signal } from "@preact/signals-core";
+import { computed, signal } from "@preact/signals-core";
 import { deepSignal } from "../utils/signal-utils.mjs";
 
 /** @type {Signal<drawingModeTypes>} */
@@ -13,16 +13,42 @@ export const drawingMode$ = signal("gridCells");
  * @property {number} height
  * @property {number} elevation
  * @property {terrainPaintMode} mode
- * @property {terrainFillMode} floodMode
  */
 /** @type {DeepSignal<PaintingConfigModel>} */
 export const paintingConfig$ = deepSignal({
 	terrainTypeId: undefined,
 	height: 1,
 	elevation: 0,
-	mode: "destructiveMerge",
-	floodMode: "applicableBoundary"
+	mode: "destructiveMerge"
 });
+
+/**
+ * Readonly signal representing the effective `top` value of the current painting config.
+ * Use `setPaintingConfigTop` to adjust.
+ */
+export const paintingConfigTop$ = computed(() => paintingConfig$.elevation.value + paintingConfig$.height.value);
+
+/**
+ * Updates the `paintingConfig$`'s `height` so that it matches the specified `top` value.
+ * @param {number} top
+ */
+export function setPaintingConfigTop(top) {
+	paintingConfig$.height.value = Math.max(top - paintingConfig$.elevation.value, 0.1);
+}
+
+/**
+ * Updates the `paintingConfig$`'s `height` and `elevation` so that it matches the specified `bottom` value. Does not
+ * change what the effective `top` value would be.
+ * @param {number} bottom
+ */
+export function setPaintingConfigBottom(bottom) {
+	const { elevation, height } = paintingConfig$.value;
+	const top = elevation + height;
+	paintingConfig$.value = {
+		elevation: bottom,
+		height: Math.max(top - bottom, 0.1)
+	};
+}
 
 /**
  * @typedef {Object} EraseConfigModel
@@ -41,21 +67,11 @@ export const convertConfig$ = deepSignal({
 	toDrawing: true,
 	toRegion: false,
 	toWalls: false,
-	wallConfig: {
-		move: CONST.WALL_MOVEMENT_TYPES.NORMAL,
-		light: CONST.WALL_SENSE_TYPES.NORMAL,
-		sight: CONST.WALL_SENSE_TYPES.NORMAL,
-		sound: CONST.WALL_SENSE_TYPES.NORMAL,
-		dir: CONST.WALL_DIRECTIONS.BOTH,
-		door: CONST.WALL_DOOR_TYPES.NONE,
-		ds: CONST.WALL_DOOR_STATES.CLOSED,
-		threshold: {
-			light: null,
-			sight: null,
-			sound: null,
-			attenuation: false
-		}
-	},
 	setWallHeightFlags: true,
 	deleteAfter: true
 });
+
+/** @type {Signal<any>} */
+export const wallConfig$ = signal(foundry.documents.WallDocument.schema.clean({}));
+
+window.wallConfig$ = wallConfig$;

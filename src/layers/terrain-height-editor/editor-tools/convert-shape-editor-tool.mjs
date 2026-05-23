@@ -2,24 +2,28 @@
 import { ShapeConversionConfig } from "../../../applications/shape-conversion-config.mjs";
 import { wallHeightModuleName } from "../../../consts.mjs";
 import { heightMap } from "../../../geometry/height-map.mjs";
-import { convertConfig$ } from "../../../stores/drawing.mjs";
+import { convertConfig$, wallConfig$ } from "../../../stores/drawing.mjs";
 import { getTerrainType } from "../../../stores/terrain-types.mjs";
 import { toSceneUnits } from "../../../utils/grid-utils.mjs";
 import { getLabelText } from "../../terrain-height-graphics/terrain-shape-graphic.mjs";
-import { AbstractShapePickerEditorTool } from "./abstract/abstract-shape-picker-editor-tool.mjs";
+import { AbstractEditorTool } from "./abstract/abstract-editor-tool.mjs";
 
 /**
  * Tool that allows a user to convert an existing shape into drawing/walls/region.
  */
-export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
+export class ConvertShapeEditorTool extends AbstractEditorTool {
 
 	static APPLICATION_TYPE = ShapeConversionConfig;
 
-	static hint = "TERRAINHEIGHTTOOLS.SelectAShapeConvertHint";
-
-	static submitLabel = "TERRAINHEIGHTTOOLS.ConvertSelectedShape";
-
-	static submitIcon = "fas fa-arrow-turn-right";
+	_onMouseDownLeft(x, y) {
+		heightMap.getSingleShapeAtPoint(x, y, {
+			hint: "TERRAINHEIGHTTOOLS.SelectAShapeConvertHint",
+			submitLabel: "TERRAINHEIGHTTOOLS.ConvertSelectedShape",
+			submitIcon: "fas fa-arrow-turn-right"
+		}).then(shape => {
+			if (shape) this._selectShape(shape);
+		});
+	}
 
 	/** @type {Set<TerrainShape>} */
 	#convertedShapes = new Set();
@@ -50,7 +54,7 @@ export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
 	 * @override
 	 */
 	async _selectShape(shape) {
-		const { toDrawing, toRegion, toWalls, wallConfig, setWallHeightFlags, deleteAfter } = convertConfig$.value;
+		const { toDrawing, toRegion, toWalls, setWallHeightFlags, deleteAfter } = convertConfig$.value;
 
 		const terrainData = getTerrainType(shape.terrainTypeId);
 		if (!terrainData) return;
@@ -141,7 +145,7 @@ export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
 
 			await canvas.scene.createEmbeddedDocuments("Wall", [...shape.polygon.edges, ...shape.holes.flatMap(h => h.edges)]
 				.map(edge => ({
-					...wallConfig,
+					...wallConfig$.value,
 					c: [
 						edge.p1.x,
 						edge.p1.y,
@@ -153,7 +157,7 @@ export class ConvertShapeEditorTool extends AbstractShapePickerEditorTool {
 		}
 
 		if (deleteAfter) {
-			await heightMap.eraseShape(shape);
+			await heightMap.eraseShapes(shape);
 		} else {
 			// Persistent visual mark so the user can see which shapes have already been converted in this tool session.
 			this.#convertedShapes.add(shape);

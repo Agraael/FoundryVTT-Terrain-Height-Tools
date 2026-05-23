@@ -8,7 +8,8 @@ import "./context-menu.css";
  * @property {string} [icon]
  * @property {() => void} [onClick]
  * @property {ContextMenuItem[]} [children]
- * @property {undefined | "separator"} [type]
+ * @property {"item" | "separator" | "header"} [type]
+ * @property {string} [hint]
  */
 
 export const elementName = "context-menu-fwl";
@@ -59,13 +60,21 @@ export class ContextMenu extends LitElement {
 	#renderItem = (item, idx) => {
 		switch (item.type) {
 			case "separator":
-				return html`<li class="context-menu-fwl-separator"></li>`;
+				return html`<li class="dropdown-menu-fwl-separator"></li>`;
+
+			case "header":
+				return html`<li class="dropdown-menu-fwl-header">
+					<span>${item.label}</span>
+				</li>`;
 
 			default:
-				return html`<li class="context-menu-fwl-item" data-item-index=${idx}>
-					${when(item.icon, () => html`<i class=${item.icon}></i>`)}
-					<span>${item.label}</span>
-					${when(item.children?.length, () => html`<i class="fas fa-caret-right"></i>`)}
+				return html`<li class="dropdown-menu-fwl-item" data-item-index=${idx}>
+					${when(item.icon, icon => html`<i class=${icon}></i>`)}
+					<div class="flexcol">
+						<span>${item.label}</span>
+						${when(item.hint, hint => html`<span class="dropdown-menu-fwl-item-hint">${hint}</span>`)}
+					</div>
+					${when(item.children?.length, () => html`<i class="fas fa-caret-right dropdown-menu-fwl-item-caret"></i>`)}
 				</li>`;
 		}
 	};
