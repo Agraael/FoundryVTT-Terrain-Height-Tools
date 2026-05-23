@@ -71,7 +71,6 @@
 .tht-toolbar {
 	display: flex;
 	width: 100%;
-	max-width: 680px;
 	margin: 16px 0;
 	padding: 8px;
 	gap: 8px;
@@ -83,6 +82,10 @@
 	box-shadow: 0 0 10px #000;
 }
 
+#tht_terrainPaintToolbar, #tht_terrainEraseToolbar {
+	max-width: 680px;
+}
+
 .themed.theme-light .tht-toolbar {
 	background: url("/ui/parchment.jpg") repeat;
 	border-color: rgba(255, 255, 255, 0.8);
@@ -92,8 +95,20 @@
 	display: block;
 	margin-bottom: 2px;
     text-align: center;
-    font-size: 0.8rem;
+	font-size: 0.8rem;
     font-variant: small-caps;
+}
+
+.tht-toolbar .tht-toolbar-checkbox {
+	display: flex;
+	align-items: center;
+	margin-top: 1.25rem;
+	font-variant: small-caps;
+	white-space: nowrap;
+}
+
+.tht-toolbar .tht-toolbar-checkbox > input[type="checkbox"] {
+	margin: 0 0.4rem 0 0;
 }
 
 .tht-terrain-preview-box {
@@ -416,61 +431,64 @@
 }
 
 
-/* -------------------------- */
-/* Line of Sight Ruler Config */
-/* -------------------------- */
-#tht_lineOfSightRulerConfig .form-group-stacked label {
-	margin-bottom: 4px;
-}
-
-#tht_lineOfSightRulerConfig .form-group-stacked {
-	margin-bottom: 8px;
+/* --------------------------- */
+/* Line of Sight Ruler Toolbar */
+/* --------------------------- */
+#tht_lineOfSightRulerToolbar {
+	max-width: 400px;
 }
 
 
 /* -------------------------- */
 /* Token Line of Sight Config */
 /* -------------------------- */
-#tht_tokenLineOfSightConfig .token-selection-container {
-	display: flex;
-	align-items: center;
-	margin-bottom: 6px;
-	padding: 2px;
-	border-radius: 3px;
+#tht_tokenLineOfSightToolbar {
+	max-width: 740px;
 }
 
-.theme-dark #tht_tokenLineOfSightConfig .token-selection-container {
+#tht_tokenLineOfSightToolbar .token-selection-container {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 4px 12px 4px 4px;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+.theme-dark #tht_tokenLineOfSightToolbar .token-selection-container {
 	background: var(--color-cool-4);
 }
 
-.themed.theme-light #tht_tokenLineOfSightConfig .token-selection-container {
+.themed.theme-light #tht_tokenLineOfSightToolbar .token-selection-container {
 	background: rgb(0 0 0 / 10%);
 	border: 1px solid var(--color-dark-6);
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container.is-selecting-token {
+#tht_tokenLineOfSightToolbar .token-selection-container.is-selecting-token {
 	border-color: var(--color-warm-2);
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container > * {
-	margin: 4px;
-}
-
-#tht_tokenLineOfSightConfig .token-selection-container .token-image {
+#tht_tokenLineOfSightToolbar .token-selection-container .token-image {
 	width: 32px;
 	height: 32px;
 	border: none;
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container .token-name {
+#tht_tokenLineOfSightToolbar .token-selection-container .token-name {
 	flex: 1 1 0;
+	width: 1px;
     white-space: nowrap;
 	overflow: hidden;
     text-overflow: ellipsis;
+	color: var(--color-light-3);
 }
 
-#tht_tokenLineOfSightConfig .token-selection-container .token-action {
-	font-size: 1.2rem;
+.themed.theme-light {
+	color: var(--color-dark-2);
+}
+
+#board.tht-selecting-token {
+	cursor: crosshair !important;
 }
 
 

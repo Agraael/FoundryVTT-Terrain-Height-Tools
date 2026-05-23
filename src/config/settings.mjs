@@ -230,25 +230,3 @@ export function addAboveTilesToSceneConfig(sceneConfig, element) {
 		</div>
 	`, element.querySelector(".tab[data-tab='grid']"));
 }
-
-/**
- * When token config is rendered, add a checkbox to ignore automatic elevation changes.
- * @param {TokenConfig} tokenConfig
- * @param {HTMLElement} element
- */
-export function addIgnoreAutoElevationToTokenConfig(tokenConfig, element) {
-	// Don't show the checkbox if the token elevation change setting isn't active
-	if (!game.settings.get(moduleName, settingNames.tokenElevationChange)) return;
-
-	const currentValue = tokenConfig.token.getFlag(moduleName, flags.ignoreAutoElevation) ?? false;
-
-	render(html`
-		<div class="form-group">
-			<label>${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreAutoElevation.Name")}</label>
-			<div class="form-fields">
-				<input type="checkbox" name="flags.${moduleName}.${flags.ignoreAutoElevation}" ?checked=${currentValue} />
-			</div>
-			<p class="hint">${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreAutoElevation.Hint")}</p>
-		</div>
-	`, element.querySelector('.tab[data-tab="identity"]'));
-}

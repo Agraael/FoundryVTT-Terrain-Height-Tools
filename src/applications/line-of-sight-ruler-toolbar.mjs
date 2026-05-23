@@ -4,57 +4,43 @@ import { when } from "lit/directives/when.js";
 import { includeNoHeightTerrain$, lineOfSightRulerConfig$ } from "../stores/line-of-sight.mjs";
 import { fromSceneUnits, toSceneUnits } from "../utils/grid-utils.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
-import { ThtApplicationPositionMixin } from "./mixins/tht-application-position-mixin.mjs";
+import { ThtToolbarPositionMixin } from "./mixins/tht-toolbar-position-mixin.mjs";
 
 const { ApplicationV2 } = foundry.applications.api;
 
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
 
-export class LineOfSightRulerConfig extends ThtApplicationPositionMixin(LitApplicationMixin(ApplicationV2)) {
+export class LineOfSightRulerToolbar extends ThtToolbarPositionMixin(LitApplicationMixin(ApplicationV2)) {
 
 	static DEFAULT_OPTIONS = {
-		id: "tht_lineOfSightRulerConfig",
+		id: "tht_lineOfSightRulerToolbar",
+		classes: ["tht-toolbar", "flexrow"],
 		window: {
-			title: "TERRAINHEIGHTTOOLS.LineOfSightConfigTitle",
-			icon: "fas fa-ruler-combined",
-			contentClasses: ["terrain-height-tool-window"]
-		},
-		position: {
-			width: 200
+			frame: false,
+			positioned: false
 		}
 	};
 
-	/** @type {LineOfSightRulerConfig | undefined} */
+	/** @type {LineOfSightRulerToolbar | undefined} */
 	static current;
 
 	constructor(...args) {
 		super(...args);
-		LineOfSightRulerConfig.current = this;
-	}
-
-	/** @override */
-	async _renderFrame(options) {
-		const frame = await super._renderFrame(options);
-		this.window.close.remove(); // Remove close button
-		return frame;
+		LineOfSightRulerToolbar.current = this;
 	}
 
 	/** @override */
 	_renderHTML() {
 		return html`
-			<div class="form-group-stacked">
-				<label>
-					${l("TERRAINHEIGHTTOOLS.StartHeight.Name")}:
-					<i
-						class="fa fa-question-circle height-input-hint"
-						data-tooltip=${l("TERRAINHEIGHTTOOLS.StartHeight.Hint")}
-					></i>
+			<div>
+				<label class="tht-toolbar-item-label" for="tht_lineOfSightRulerToolbar_startHeight">
+					${l("TERRAINHEIGHTTOOLS.StartHeight.Name")}
 				</label>
 				<div class="flexrow gap-05rem">
 					<input
 						type="number"
-						name="rulerStartHeight"
+						id="tht_lineOfSightRulerToolbar_startHeight"
 						.value=${computed(() => toSceneUnits(lineOfSightRulerConfig$.h1.value))}
 						min="0"
 						@input=${this.#onStartHeightInput}
@@ -63,18 +49,14 @@ export class LineOfSightRulerConfig extends ThtApplicationPositionMixin(LitAppli
 				</div>
 			</div>
 
-			<div class="form-group-stacked">
-				<label>
-					${l("TERRAINHEIGHTTOOLS.EndHeight.Name")}:
-					<i
-						class="fa fa-question-circle height-input-hint"
-						data-tooltip=${l("TERRAINHEIGHTTOOLS.EndHeight.Hint")}
-					></i>
+			<div>
+				<label class="tht-toolbar-item-label" for="tht_lineOfSightRulerToolbar_endHeight">
+					${l("TERRAINHEIGHTTOOLS.EndHeight.Name")}
 				</label>
 				<div class="flexrow gap-05rem">
 					<input
 						type="number"
-						name="rulerEndHeight"
+						id="tht_lineOfSightRulerToolbar_endHeight"
 						.value=${computed(() => {
 							const h2 = lineOfSightRulerConfig$.h2.value;
 							return typeof h2 === "number" ? toSceneUnits(h2) : "";
@@ -87,14 +69,14 @@ export class LineOfSightRulerConfig extends ThtApplicationPositionMixin(LitAppli
 				</div>
 			</div>
 
-			<label>
+			<label class="tht-toolbar-checkbox flex0">
 				<input
 					type="checkbox"
 					name="rulerIncludeNoHeightTerrain"
 					.checked=${includeNoHeightTerrain$}
 					@change=${this.#onIncludeNoHeightTerrainChange}
 				>
-				${l("TERRAINHEIGHTTOOLS.IncludeZones")}
+				<span inert>${l("TERRAINHEIGHTTOOLS.IncludeZones")}</span>
 			</label>
 		`;
 	}

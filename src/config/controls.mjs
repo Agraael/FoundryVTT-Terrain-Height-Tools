@@ -1,6 +1,6 @@
 import { effect } from "@preact/signals-core";
-import { LineOfSightRulerConfig } from "../applications/line-of-sight-ruler-config.mjs";
-import { TokenLineOfSightConfig } from "../applications/token-line-of-sight-config.mjs";
+import { LineOfSightRulerToolbar } from "../applications/line-of-sight-ruler-toolbar.mjs";
+import { TokenLineOfSightToolbar } from "../applications/token-line-of-sight-toolbar.mjs";
 import { moduleName, settingNames, terrainHeightEditorControlName, tools } from "../consts.mjs";
 import { heightMap } from "../geometry/height-map.mjs";
 import { LineOfSightRulerLayer } from "../layers/line-of-sight-ruler-layer.mjs";
@@ -23,9 +23,8 @@ export function registerSceneControls(controls) {
 			toolclip: {
 				heading: "CONTROLS.TerrainHeightToolsLineOfSightRuler",
 				items: [
-					{
-						paragraph: "CONTROLS.TerrainHeightToolsLineOfSightRulerP"
-					}
+					{ heading: "CONTROLS.TerrainHeightToolsTokenLineOfSightDrawRuler", reference: "CONTROLS.ClickDrag" },
+					{ paragraph: "CONTROLS.TerrainHeightToolsLineOfSightRulerP" }
 				]
 			}
 		},
@@ -128,13 +127,13 @@ showTerrainHeightOnTokenLayer$.subscribe(isActive => {
 effect(() => {
 	// When the LoS ruler is the active tool, show the LoS ruler config application
 	if (activeControl$.value === "tokens" && activeTool$.value === tools.lineOfSight)
-		(LineOfSightRulerConfig.current ??= new LineOfSightRulerConfig()).render(true);
+		(LineOfSightRulerToolbar.current ??= new LineOfSightRulerToolbar()).render(true);
 	else
-		LineOfSightRulerConfig.current?.close({ animate: false });
+		LineOfSightRulerToolbar.current?.close({ animate: false });
 
 	// When token LoS is the active tool, show the toklen LoS config application
 	if (activeControl$.value === "tokens" && activeTool$.value === tools.tokenLineOfSight)
-		(TokenLineOfSightConfig.current ??= new TokenLineOfSightConfig()).render(true);
+		(TokenLineOfSightToolbar.current ??= new TokenLineOfSightToolbar()).render(true);
 	else
-		TokenLineOfSightConfig.current?.close({ animate: false });
+		TokenLineOfSightToolbar.current?.close({ animate: false });
 });

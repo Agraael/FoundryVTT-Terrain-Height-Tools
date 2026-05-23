@@ -1,9 +1,9 @@
 import * as api from "./api.mjs";
 import { TerrainStackViewer } from "./applications/terrain-stack-viewer.mjs";
-import { TokenLineOfSightConfig } from "./applications/token-line-of-sight-config.mjs";
+import { TokenLineOfSightToolbar } from "./applications/token-line-of-sight-toolbar.mjs";
 import { registerSceneControls } from "./config/controls.mjs";
 import { registerKeybindings } from "./config/keybindings.mjs";
-import { addAboveTilesToSceneConfig, addIgnoreAutoElevationToTokenConfig, registerSettings } from "./config/settings.mjs";
+import { addAboveTilesToSceneConfig, registerSettings } from "./config/settings.mjs";
 import { heightMapProviderId, moduleName, socketFuncs, socketName, tools } from "./consts.mjs";
 import { heightMap } from "./geometry/height-map.mjs";
 import { LineOfSightRulerLayer } from "./layers/line-of-sight-ruler-layer.mjs";
@@ -36,7 +36,6 @@ function init() {
 	Hooks.on("getSceneControlButtons", registerSceneControls);
 	Hooks.on("activateSceneControls", updateActiveControlTool);
 	Hooks.on("renderSceneConfig", addAboveTilesToSceneConfig);
-	Hooks.on("renderTokenConfig", addIgnoreAutoElevationToTokenConfig);
 
 	Hooks.on("updateScene", canvasStore.onUpdateScene);
 	Hooks.on("canvasReady", canvasStore.onCanvasReady);
@@ -73,8 +72,8 @@ function initLibWrapper() {
 		moduleName,
 		"foundry.canvas.placeables.Token.prototype._onClickLeft",
 		function(wrapped, ...args) {
-			if (TokenLineOfSightConfig.current?._isSelectingToken$.value) {
-				TokenLineOfSightConfig.current._onSelectToken(this);
+			if (TokenLineOfSightToolbar.current?._isSelectingToken$.value) {
+				TokenLineOfSightToolbar.current._onSelectToken(this);
 				return;
 			}
 			wrapped(...args);
@@ -86,7 +85,7 @@ function initLibWrapper() {
 		moduleName,
 		"foundry.canvas.interaction.MouseInteractionManager.prototype.can",
 		function(wrapped, action, event) {
-			if (action === "clickLeft" && TokenLineOfSightConfig.current?._isSelectingToken$.value)
+			if (action === "clickLeft" && TokenLineOfSightToolbar.current?._isSelectingToken$.value)
 				return true;
 			return wrapped(action, event);
 		},
