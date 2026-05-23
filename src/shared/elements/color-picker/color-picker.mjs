@@ -1,4 +1,4 @@
-/** @import { RGBA, HSVA } from "../utils/color-utils.mjs"; */
+/** @import { RGBA, HSVA } from "../../color/conversions.mjs"; */
 import { html, LitElement, noChange } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import { styleMap } from "lit/directives/style-map.js";

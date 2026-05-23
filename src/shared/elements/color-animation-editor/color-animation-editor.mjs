@@ -1,4 +1,4 @@
-/** @import { ColorAnimation } from "../data/aura.mjs"; */
+/** @import { ColorAnimation } from "../../color/color-animation.mjs"; */
 import { html } from "lit";
 import { AsyncDirective, directive } from "lit/async-directive.js";
 import { classMap } from "lit/directives/class-map.js";
@@ -286,7 +286,7 @@ class ColorAnimationEditorElement extends AbstractDropdownElement {
 	}
 
 	/**
-	 * @param {import("../utils/color-utils.mjs").RGBA} rgba
+	 * @param {import("../../color/conversions.mjs").RGBA} rgba
 	 */
 	#updateSelectedKeyframeColor({ r, g, b, a }) {
 		const color = (r << 16) | (g << 8) | b;

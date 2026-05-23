@@ -12,7 +12,6 @@ export const terrainStackViewerDisplayMode$ = signal("auto");
 export const terrainHeightLayerVisibilityRadius$ = signal(0);
 export const showZonesAboveNonZones$ = signal(false);
 export const useFractionsForLabels$ = signal(true);
-export const smartLabelPlacement$ = signal(true);
 export const terrainLayerAboveTilesDefault$ = signal(true);
 export const paintToolbarUseHeightElevation$ = signal(false);
 
@@ -174,7 +173,7 @@ export function registerSettings() {
 		type: Boolean,
 		config: true,
 		default: true
-	}, smartLabelPlacement$);
+	});
 
 	registerSetting(settingNames.paintToolbarUseHeightElevation, {
 		scope: "client",
