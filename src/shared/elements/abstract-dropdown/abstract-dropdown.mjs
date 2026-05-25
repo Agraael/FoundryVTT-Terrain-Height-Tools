@@ -14,13 +14,19 @@ export class AbstractDropdownElement extends LitElement {
 
 	static dropdownClasses = "";
 
+	#internals;
+
 	/** @type {HTMLElement | null} */
 	#dropdownContainer = null;
 
 	constructor() {
 		super();
+		this.#internals = this.attachInternals();
+
 		this.disabled = false;
 		this._isOpen = false;
+
+		this.classList.add("dropdown-fwl");
 	}
 
 	get dropdownElement() {
@@ -47,6 +53,7 @@ export class AbstractDropdownElement extends LitElement {
 		if (!canOpen) return;
 
 		this._isOpen = true;
+		this.#internals.states.add("is-open");
 		game.tooltip.deactivate(); // If any tooltips are open, immediately close them
 	}
 
@@ -54,6 +61,7 @@ export class AbstractDropdownElement extends LitElement {
 		const canOpen = this.dispatchEvent(new Event("close", { cancelable: true }));
 		if (!canOpen) return;
 
+		this.#internals.states.delete("is-open");
 		this._isOpen = false;
 	}
 
