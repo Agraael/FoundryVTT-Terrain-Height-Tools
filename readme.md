@@ -18,6 +18,10 @@ Simply search for 'Terrain Height Tools' in the Foundry 'Install Module' screen 
 
 Alternatively, paste this URL into the 'Manifest URL' field of the 'Install Module' dialog in the Foundry configuration: `https://github.com/Wibble199/FoundryVTT-Terrain-Height-Tools/releases/latest/download/module.json`, then enable the module in your world.
 
+## Incompatibilities/issues with other modules
+
+- **Carousel Combat Tracker** - If using the 'Horizontal (Docked)' position setting for Carousel Combat Tracker, while the carousel is open it hides anything in that same UI space - which includes THT's default toolbar position. You can either: a) change the toolbar position in the Terrain Height Tools settings (since v0.7.2); or b) use an alternative Carousel Combat Tracker position.
+
 ## Usage
 
 > [!TIP]
