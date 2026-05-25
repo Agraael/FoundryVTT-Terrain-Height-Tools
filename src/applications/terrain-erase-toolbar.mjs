@@ -10,7 +10,7 @@ import { terrainTypes$ } from "../stores/terrain-types.mjs";
 import { fromSceneUnits, toSceneUnits } from "../utils/grid-utils.mjs";
 import { styleTerrainColor } from "./directives/style-terrain-color.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
-import { ThtToolbarPositionMixin } from "./mixins/tht-toolbar-position-mixin.mjs";
+import { ThtToolbarMixin } from "./mixins/tht-toolbar-mixin.mjs";
 import { TerrainTypesConfig } from "./terrain-types-config.mjs";
 
 const { ApplicationV2 } = foundry.applications.api;
@@ -18,7 +18,7 @@ const { ApplicationV2 } = foundry.applications.api;
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
 
-export class TerrainEraseToolbar extends ThtToolbarPositionMixin(LitApplicationMixin(ApplicationV2)) {
+export class TerrainEraseToolbar extends ThtToolbarMixin(LitApplicationMixin(ApplicationV2)) {
 
 	static DEFAULT_OPTIONS = {
 		id: "tht_terrainEraseToolbar",

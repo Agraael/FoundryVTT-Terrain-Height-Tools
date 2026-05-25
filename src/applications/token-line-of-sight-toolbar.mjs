@@ -8,14 +8,14 @@ import { tokenRelativeHeights } from "../consts.mjs";
 import { includeNoHeightTerrain$, tokenLineOfSightConfig$ } from "../stores/line-of-sight.mjs";
 import { abortableEffect, abortableSubscribe } from "../utils/signal-utils.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
-import { ThtToolbarPositionMixin } from "./mixins/tht-toolbar-position-mixin.mjs";
+import { ThtToolbarMixin } from "./mixins/tht-toolbar-mixin.mjs";
 
 const { ApplicationV2 } = foundry.applications.api;
 
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
 
-export class TokenLineOfSightToolbar extends ThtToolbarPositionMixin(LitApplicationMixin(ApplicationV2)) {
+export class TokenLineOfSightToolbar extends ThtToolbarMixin(LitApplicationMixin(ApplicationV2)) {
 
 	/** @type {Signal<1 | 2 | undefined>} */
 	#selectingToken$ = signal(undefined);

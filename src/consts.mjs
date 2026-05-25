@@ -58,6 +58,8 @@ export const settingNames = /** @type {const} */ ({
 	tokenElevationChange: "tokenElevationChange",
 	tokenLosToolPreselectToken1: "tokenLosToolPreselectToken1",
 	tokenLosToolPreselectToken2: "tokenLosToolPreselectToken2",
+	toolbarAutofade: "toolbarAutofade",
+	toolbarPosition: "toolbarPosition",
 	useFractionsForLabels: "useFractionsForLabels"
 });
 
@@ -101,6 +103,12 @@ export const tokenRelativeHeights = /** @type {const} */ ({
 	[1]: "SETTINGS.DefaultTokenLosHeight.Choice.Top",
 	[0.5]: "SETTINGS.DefaultTokenLosHeight.Choice.Middle",
 	[0]: "SETTINGS.DefaultTokenLosHeight.Choice.Bottom"
+});
+
+/** @enum {keyof typeof toolbarPositions} */
+export const toolbarPositions = /** @type {const} */ ({
+	topCenter: "SETTINGS.TerrainHeightToolsToolbarPosition.Choice.TopCenter",
+	bottomCenter: "SETTINGS.TerrainHeightToolsToolbarPosition.Choice.BottomCenter"
 });
 
 /** @enum {keyof typeof terrainStackViewerDisplayModes} */
