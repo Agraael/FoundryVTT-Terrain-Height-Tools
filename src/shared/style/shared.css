@@ -82,7 +82,9 @@ button.btn-active-fwl {
 }
 
 .dropdown-menu-fwl > li > i:first-child {
+	width: 1.2em;
 	margin-right: 8px;
+	text-align: center;
 }
 
 .dropdown-menu-fwl > li > div {
