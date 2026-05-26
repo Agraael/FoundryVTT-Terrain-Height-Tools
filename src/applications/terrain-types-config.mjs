@@ -723,8 +723,8 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	/** @type {UiPartRenderer} */
 	static _renderAutoWallsTab = ({ terrainType, index }) => {
 		const cfg = terrainType.autoGenerateWalls ?? createDefaultAutoGenerateWalls();
-		const senseTypes = Object.fromEntries(Object.entries(CONST.WALL_SENSE_TYPES).map(([k, v]) => [v, `WALLS.SenseTypes.${k}`]));
-		const dirTypes = Object.fromEntries(Object.entries(CONST.WALL_DIRECTIONS).map(([k, v]) => [v, `WALLS.Directions.${k}`]));
+		const senseTypes = Object.fromEntries(Object.entries(CONST.WALL_SENSE_TYPES).map(([k, v]) => [v, `WALL.SenseTypes.${k}`]));
+		const dirTypes = Object.fromEntries(Object.entries(CONST.WALL_DIRECTIONS).map(([k, v]) => [v, `WALL.Directions.${k}`]));
 		return html`
 			<div class="form-group">
 				<label for="terrainType${index}_autoWallsEnabled">${l("TERRAINHEIGHTTOOLS.AutoWalls.Enabled.Name")}</label>
@@ -735,7 +735,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 
 			<div class="form-group">
-				<label>${l("WALLS.Movement")}</label>
+				<label>${l("WALL.FIELDS.move.label")}</label>
 				<div class="form-fields">
 					<select name="${index}.autoGenerateWalls.move" data-dtype="Number">
 						${selectOptions(senseTypes, { selected: String(cfg.move) })}
@@ -744,7 +744,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 
 			<div class="form-group">
-				<label>${l("WALLS.Light")}</label>
+				<label>${l("WALL.FIELDS.light.label")}</label>
 				<div class="form-fields">
 					<select name="${index}.autoGenerateWalls.light" data-dtype="Number">
 						${selectOptions(senseTypes, { selected: String(cfg.light) })}
@@ -753,7 +753,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 
 			<div class="form-group">
-				<label>${l("WALLS.Sight")}</label>
+				<label>${l("WALL.FIELDS.sight.label")}</label>
 				<div class="form-fields">
 					<select name="${index}.autoGenerateWalls.sight" data-dtype="Number">
 						${selectOptions(senseTypes, { selected: String(cfg.sight) })}
@@ -762,7 +762,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 
 			<div class="form-group">
-				<label>${l("WALLS.Sound")}</label>
+				<label>${l("WALL.FIELDS.sound.label")}</label>
 				<div class="form-fields">
 					<select name="${index}.autoGenerateWalls.sound" data-dtype="Number">
 						${selectOptions(senseTypes, { selected: String(cfg.sound) })}
@@ -771,7 +771,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 
 			<div class="form-group">
-				<label>${l("WALLS.Direction")}</label>
+				<label>${l("WALL.FIELDS.dir.label")}</label>
 				<div class="form-fields">
 					<select name="${index}.autoGenerateWalls.dir" data-dtype="Number">
 						${selectOptions(dirTypes, { selected: String(cfg.dir) })}
@@ -780,7 +780,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			</div>
 
 			<div class="form-group">
-				<label>${l("WALLS.ThresholdAttenuation")}</label>
+				<label>${l("WALL.FIELDS.threshold.attenuation.label")}</label>
 				<div class="form-fields">
 					<input type="checkbox" name="${index}.autoGenerateWalls.attenuation" .checked=${!!cfg.attenuation}>
 				</div>
