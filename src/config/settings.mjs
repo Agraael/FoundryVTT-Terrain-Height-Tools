@@ -2,7 +2,7 @@
 import { signal } from "@preact/signals-core";
 import { html, render } from "lit";
 import { TerrainTypesConfig } from "../applications/terrain-types-config.mjs";
-import { flags, moduleName, settingNames, terrainStackViewerDisplayModes, tokenRelativeHeights, toolbarPositions } from "../consts.mjs";
+import { moduleName, sceneFlags, settingNames, terrainStackViewerDisplayModes, tokenRelativeHeights, toolbarPositions } from "../consts.mjs";
 import { loadTerrainTypes } from "../stores/terrain-types.mjs";
 
 export const showTerrainHeightOnTokenLayer$ = signal(false);
@@ -243,12 +243,12 @@ export function registerSettings() {
  */
 export function addAboveTilesToSceneConfig(sceneConfig, element) {
 	/** @type {boolean | null | undefined} */
-	const currentValue = sceneConfig.document.getFlag(moduleName, flags.terrainLayerAboveTiles);
+	const currentValue = sceneConfig.document.getFlag(moduleName, sceneFlags.terrainLayerAboveTiles);
 
 	render(html`
 		<div class="form-group">
 			<label>${game.i18n.localize("TERRAINHEIGHTTOOLS.SceneRenderAboveTiles")}</label>
-			<select name=${`flags.${moduleName}.${flags.terrainLayerAboveTiles}`} data-dtype="JSON">
+			<select name=${`flags.${moduleName}.${sceneFlags.terrainLayerAboveTiles}`} data-dtype="JSON">
 				<option value="null" ?selected=${currentValue === null || currentValue === undefined}>
 					${game.i18n.localize("TERRAINHEIGHTTOOLS.SceneRenderAboveTilesChoice.UseGlobal")}
 				</option>

@@ -45,7 +45,7 @@ export function groupBy2(items, keySelector, groupSelector) {
  * @template T
  * @param {T[]} items
  * @param  {...((item: T) => any)} funcs
- * @returns
+ * @returns {T[]}
  */
 export function distinctBy(items, ...funcs) {
 	if (!funcs?.length) throw new Error("Must provide at least one function");

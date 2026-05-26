@@ -89,7 +89,7 @@
 		"AddTerrainType": "Add Terrain Type",
 		"AllowLabelRotation.Name": "Allow Label Rotation",
 		"AllowLabelRotation.Hint": "If turned on, the label may get rotated by 90 degrees if THT thinks that the label will fit better that way.",
-		"BehaviorsHelpText": "This feature uses Foundry's scene regions to provide behaviors. These regions are temporary, so some features that are available for normal scene regions don't work (such as the ability for behaviors to only happen once).",
+		"BehaviorsHelpText": "This feature uses Foundry's scene regions to provide behaviors. These regions are re-created when the terrain data changes, so features that use state (such as the ability for behaviors to only happen once) may not work as expected.",
 		"Bottom": "Bottom",
 		"ClearConfirmContent": "Permanently delete all terrain data from this scene?",
 		"ClearConfirmTitle": "Clear All Terrain",
@@ -177,7 +177,7 @@
 			"PlaceholderHelpText": "You can use any of these placeholders in the label format, which will get replaced with the corresponding value:",
 			"Top": "The elevation of the top of the terrain (elevation + height)."
 		},
-		"RegionManagedByThtWarning": "<p>This region is managed by Terrain Height Tools. It is not persistant, and trying to make changes here will fail.</p><p>To adjust the behaviours of this region, configure the region's terrain type. To adjust the region's shapes, paint/erase terrain using Terrain Height Tools.</p>",
+		"RegionManagedByThtWarning": "<p>This region is managed by Terrain Height Tools. Do not make any changes to the region directly, as these changes will be lost when THT's map next refreshes.</p><p>To adjust the behaviours of this region, configure the region's terrain type. To adjust the region's shapes, paint/erase terrain using Terrain Height Tools.</p>",
 		"SameAsStart": "Same as start",
 		"SameTokenSelected": "You have already selected this token for line of sight, please select a different one",
 		"SceneRenderAboveTiles": "Terrain Height Map Layer",

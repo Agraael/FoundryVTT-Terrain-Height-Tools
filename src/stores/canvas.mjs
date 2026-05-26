@@ -1,6 +1,6 @@
 /** @import { Signal } from "@preact/signals-core" */
 import { batch, signal } from "@preact/signals-core";
-import { flags, moduleName } from "../consts.mjs";
+import { moduleName, sceneFlags } from "../consts.mjs";
 
 export const canvasReady$ = signal(false);
 
@@ -21,8 +21,8 @@ export function onUpdateScene(scene) {
 
 export function onCanvasReady({ scene }) {
 	batch(() => {
-		invisibleTerrainTypes$.value = new Set(scene.getFlag(moduleName, flags.invisibleTerrainTypes) ?? []);
-		sceneRenderAboveTilesChoice$.value = scene.getFlag(moduleName, flags.terrainLayerAboveTiles) ?? null;
+		invisibleTerrainTypes$.value = new Set(scene.getFlag(moduleName, sceneFlags.invisibleTerrainTypes) ?? []);
+		sceneRenderAboveTilesChoice$.value = scene.getFlag(moduleName, sceneFlags.terrainLayerAboveTiles) ?? null;
 		canvasReady$.value = true;
 	});
 }
