@@ -1,6 +1,7 @@
 import * as api from "./api.mjs";
 import { TerrainStackViewer } from "./applications/terrain-stack-viewer.mjs";
 import { TokenLineOfSightToolbar } from "./applications/token-line-of-sight-toolbar.mjs";
+import { initSceneRegionAutomation } from "./automation/scene-regions.mjs";
 import { registerSceneControls } from "./config/controls.mjs";
 import { registerKeybindings } from "./config/keybindings.mjs";
 import { addAboveTilesToSceneConfig, registerSettings } from "./config/settings.mjs";
@@ -32,6 +33,7 @@ function init() {
 
 	registerSettings();
 	loadTerrainTypes();
+	initSceneRegionAutomation();
 
 	Hooks.on("getSceneControlButtons", registerSceneControls);
 	Hooks.on("activateSceneControls", updateActiveControlTool);

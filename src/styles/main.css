@@ -342,6 +342,42 @@
 	background-color: rgba(255, 255, 255, 0.1);
 }
 
+#tht_terrainTypesConfig .tht-add-behavior-button {
+	width: max-content;
+	margin: 0 auto;
+    padding: 0 2rem;
+}
+
+#tht_terrainTypesConfig .tht-behavior-list {
+	flex-direction: column;
+	margin: 0;
+	padding: 0;
+}
+
+#tht_terrainTypesConfig .tht-behavior-list > li {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	padding: 0.5rem 0;
+	border-top: 1px solid transparent;
+	border-bottom: 1px solid transparent;
+	cursor: pointer;
+}
+
+#tht_terrainTypesConfig .tht-behavior-list > li:hover {
+	border-color: rgb(135 135 135 / 25%);
+}
+
+#tht_terrainTypesConfig .tht-behavior-list i:first-child {
+	width: 1.25em;
+	text-align: center;
+}
+
+#tht_terrainTypesConfig .tht-behavior-list .behavior-name {
+	flex: 1 1 0;
+	font-weight: bold;
+}
+
 
 /* --------------------------- */
 /* Terrain Types Import/Export */
