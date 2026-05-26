@@ -4,14 +4,14 @@ import { when } from "lit/directives/when.js";
 import { includeNoHeightTerrain$, lineOfSightRulerConfig$ } from "../stores/line-of-sight.mjs";
 import { fromSceneUnits, toSceneUnits } from "../utils/grid-utils.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
-import { ThtToolbarPositionMixin } from "./mixins/tht-toolbar-position-mixin.mjs";
+import { ThtToolbarMixin } from "./mixins/tht-toolbar-mixin.mjs";
 
 const { ApplicationV2 } = foundry.applications.api;
 
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
 
-export class LineOfSightRulerToolbar extends ThtToolbarPositionMixin(LitApplicationMixin(ApplicationV2)) {
+export class LineOfSightRulerToolbar extends ThtToolbarMixin(LitApplicationMixin(ApplicationV2)) {
 
 	static DEFAULT_OPTIONS = {
 		id: "tht_lineOfSightRulerToolbar",

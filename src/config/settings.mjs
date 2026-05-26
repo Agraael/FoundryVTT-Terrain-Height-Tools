@@ -2,7 +2,7 @@
 import { signal } from "@preact/signals-core";
 import { html, render } from "lit";
 import { TerrainTypesConfig } from "../applications/terrain-types-config.mjs";
-import { flags, moduleName, settingNames, terrainStackViewerDisplayModes, tokenRelativeHeights } from "../consts.mjs";
+import { flags, moduleName, settingNames, terrainStackViewerDisplayModes, tokenRelativeHeights, toolbarPositions } from "../consts.mjs";
 import { loadTerrainTypes } from "../stores/terrain-types.mjs";
 
 export const showTerrainHeightOnTokenLayer$ = signal(false);
@@ -14,6 +14,10 @@ export const showZonesAboveNonZones$ = signal(false);
 export const useFractionsForLabels$ = signal(true);
 export const terrainLayerAboveTilesDefault$ = signal(true);
 export const paintToolbarUseHeightElevation$ = signal(false);
+
+/** @type {Signal<toolbarPositions>} */
+export const toolbarPosition$ = signal("top");
+export const toolbarAutofade$ = signal(true);
 
 export function registerSettings() {
 
@@ -73,6 +77,35 @@ export function registerSettings() {
 		default: 1,
 		config: true
 	});
+
+	registerSetting(settingNames.toolbarPosition, {
+		name: "SETTINGS.TerrainHeightToolsToolbarPosition.Name",
+		hint: "SETTINGS.TerrainHeightToolsToolbarPosition.Hint",
+		scope: "client",
+		type: String,
+		choices: toolbarPositions,
+		default: "topCenter",
+		config: true
+	}, toolbarPosition$);
+
+	registerSetting(settingNames.toolbarPosition, {
+		name: "SETTINGS.TerrainHeightToolsToolbarPosition.Name",
+		hint: "SETTINGS.TerrainHeightToolsToolbarPosition.Hint",
+		scope: "client",
+		type: String,
+		choices: toolbarPositions,
+		default: "topCenter",
+		config: true
+	}, toolbarPosition$);
+
+	registerSetting(settingNames.toolbarAutofade, {
+		name: "SETTINGS.TerrainHeightToolsToolbarAutofade.Name",
+		hint: "SETTINGS.TerrainHeightToolsToolbarAutofade.Hint",
+		scope: "client",
+		type: Boolean,
+		default: true,
+		config: true
+	}, toolbarAutofade$);
 
 	registerSetting(settingNames.showTerrainHeightOnTokenLayer, {
 		name: "SETTINGS.ShowTerrainHeightOnTokenLayer",
