@@ -882,11 +882,11 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		</div>
 
 		<div class="form-group">
-			<label>${l("TERRAINHEIGHTTOOLS.MovementPenalty.Name")}</label>
+			<label>Movement Penalty (Lancer Automations)</label>
 			<div class="form-fields">
-				<input type="number" name="${index}.movementPenalty" value=${terrainType.movementPenalty} min="0" step="1">
+				<input type="number" name="${index}.movementPenalty" value=${terrainType.movementPenalty} min="0" step="1" ?disabled=${!game.modules.get("lancer-automations")?.active}>
 			</div>
-			<p class="hint">${l("TERRAINHEIGHTTOOLS.MovementPenalty.Hint")}</p>
+			<p class="hint">Extra movement cost added by Lancer Automations' ruler when a token enters this terrain. Requires the Lancer Automations module.</p>
 		</div>
 	`;
 
