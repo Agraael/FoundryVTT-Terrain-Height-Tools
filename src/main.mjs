@@ -72,6 +72,15 @@ function ready() {
 }
 
 function initLibWrapper() {
+	// The _onClickLeft wrapper intentionally consumes the click (no chain) while selecting a token for the LoS tool.
+	// Declare expected conflicts with modules that also wrap _onClickLeft so libWrapper doesn't warn at runtime.
+	try {
+		libWrapper.ignore_conflicts(moduleName, ["smart-target"], [
+			"foundry.canvas.placeables.Token.prototype._onClickLeft",
+			"foundry.canvas.interaction.MouseInteractionManager.prototype.can"
+		]);
+	} catch { /* libWrapper version may not expose ignore_conflicts; safe to skip */ }
+
 	// Patches to allow clicking on a token to select it for the token line of sight
 	// Since players are not allowed to click on tokens they do not own (in which case `_onClickLeft` does not even get
 	// called) we also need to override the `can` method to allow players to click tokens they don't own when using the
