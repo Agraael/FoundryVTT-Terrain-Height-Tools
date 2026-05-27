@@ -73,12 +73,21 @@ export const keybindings = /** @type {const} */ ({
 	toggleTerrainHeightMapOnTokenLayer: "toggleTerrainHeightMapOnTokenLayer"
 });
 
-/** @enum {keyof typeof flags} */
-export const flags = /** @type {const} */ ({
+/** @enum {keyof typeof sceneFlags} */
+export const sceneFlags = /** @type {const} */ ({
 	heightData: "heightData",
 	invisibleTerrainTypes: "invisibleTerrainTypes",
-	terrainLayerAboveTiles: "terrainLayerAboveTiles",
+	terrainLayerAboveTiles: "terrainLayerAboveTiles"
+});
+
+/** @enum {keyof typeof tokenFlags} */
+export const tokenFlags = /** @type {const} */ ({
 	ignoreAutoElevation: "ignoreAutoElevation"
+});
+
+/** @enum {keyof typeof regionFlags} */
+export const regionFlags = /** @type {const} */ ({
+	terrainTypeId: "terrainTypeId"
 });
 
 /** @enum {keyof typeof socketFuncs} */

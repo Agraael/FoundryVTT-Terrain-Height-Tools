@@ -3,7 +3,7 @@
 /** @import { PointLike } from "./point.mjs" */
 import { difference as polygonDifference, intersection as polygonIntersection, union as polygonUnion } from "polygon-clipping";
 import { TerrainShapeChoiceDialog } from "../applications/terrain-shape-choice-dialog.mjs";
-import { flags, moduleName } from "../consts.mjs";
+import { moduleName, sceneFlags } from "../consts.mjs";
 import { TerrainProvider } from "../stores/terrain-manager.mjs";
 import { getTerrainType, terrainTypeMap$, terrainTypes$ } from "../stores/terrain-types.mjs";
 import { groupBy2 } from "../utils/array-utils.mjs";
@@ -32,12 +32,13 @@ export class HeightMap extends TerrainProvider {
 	}
 
 	/** @override */
-	_updateScene(delta) {
-		// If the current scene's height data has changed, reload the map
-		if (delta.flags?.[moduleName]?.[flags.heightData])
+	_updateScene(doc, delta, options, userId) {
+		// If the current scene's height data has changed, reload the map. Unless the change was done by the current
+		// user, in which case the changes will have already been done locally.
+		if (delta.flags?.[moduleName]?.[sceneFlags.heightData] && userId !== game.userId)
 			this._reloadData();
 
-		super._updateScene(delta);
+		super._updateScene(doc, delta, options, userId);
 	}
 
 	/**
@@ -45,7 +46,7 @@ export class HeightMap extends TerrainProvider {
 	 */
 	_reloadData() {
 		// Load data from scene flags and migrate it from an old format if needed
-		const sceneFlagData = canvas.scene.getFlag(moduleName, flags.heightData);
+		const sceneFlagData = canvas.scene.getFlag(moduleName, sceneFlags.heightData);
 		const data = migrateData(sceneFlagData, canvas.grid).data;
 
 		// Strip out any shapes whose terrain type IDs have been deleted
@@ -613,7 +614,7 @@ export class HeightMap extends TerrainProvider {
 
 		// If anything has changed, save the scene data and history
 		if (anyChanges) {
-			await canvas.scene.setFlag(moduleName, flags.heightData, this.#getSnapshot());
+			await canvas.scene.setFlag(moduleName, sceneFlags.heightData, this.#getSnapshot());
 			this.#history.push(snapshot);
 
 			// Limit the number of changes we store in the history, removing old entries first
@@ -630,7 +631,8 @@ export class HeightMap extends TerrainProvider {
 	async undo() {
 		if (this.#history.length <= 0) return;
 		const previousState = this.#history.pop();
-		await canvas.scene.setFlag(moduleName, flags.heightData, previousState);
+		await canvas.scene.setFlag(moduleName, sceneFlags.heightData, previousState);
+		this._reloadData(); // manually trigger reload since the updateScene hook skips if triggered by current user
 	}
 
 	/**

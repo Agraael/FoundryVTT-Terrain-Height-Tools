@@ -1,7 +1,7 @@
 /** @import { Signal } from "@preact/signals-core"; */
 /** @import { ColorAnimation } from "../shared/color/color-animation.mjs" */
 import { computed, signal } from "@preact/signals-core";
-import { flags, moduleName, settingNames } from "../consts.mjs";
+import { moduleName, sceneFlags, settingNames } from "../consts.mjs";
 import { LINE_TYPES } from "../shared/consts.mjs";
 
 /**
@@ -62,6 +62,7 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {number} movementPenalty
  * @property {TerrainTrigger[]} triggers
  * @property {AutoGenerateWallsConfig} autoGenerateWalls
+ * @property {any[]} regionBehaviors
  * @property {Record<string, any>} flags
  */
 
@@ -152,6 +153,7 @@ export function createDefaultTerrainType(id = undefined) {
 		movementPenalty: 0,
 		triggers: [],
 		autoGenerateWalls: createDefaultAutoGenerateWalls(),
+		regionBehaviors: [],
 		flags: {}
 	};
 }
@@ -222,10 +224,10 @@ export function getTerrainColor(terrainType, defaultColor = 0x00FFFF) {
  */
 export async function setSceneTerrainTypeVisible(scene, terrainTypeId, force = undefined) {
 	/** @type {string[]} */
-	const invisibleSceneTerrainTypes = scene.getFlag(moduleName, flags.invisibleTerrainTypes) ?? [];
+	const invisibleSceneTerrainTypes = scene.getFlag(moduleName, sceneFlags.invisibleTerrainTypes) ?? [];
 
 	if ((force === true || force === undefined) && !invisibleSceneTerrainTypes.includes(terrainTypeId))
-		await scene.setFlag(moduleName, flags.invisibleTerrainTypes, [...invisibleSceneTerrainTypes, terrainTypeId]);
+		await scene.setFlag(moduleName, sceneFlags.invisibleTerrainTypes, [...invisibleSceneTerrainTypes, terrainTypeId]);
 	else if ((force === false || force === undefined) && invisibleSceneTerrainTypes.includes(terrainTypeId))
-		await scene.setFlag(moduleName, flags.invisibleTerrainTypes, invisibleSceneTerrainTypes.filter(t => t !== terrainTypeId));
+		await scene.setFlag(moduleName, sceneFlags.invisibleTerrainTypes, invisibleSceneTerrainTypes.filter(t => t !== terrainTypeId));
 }

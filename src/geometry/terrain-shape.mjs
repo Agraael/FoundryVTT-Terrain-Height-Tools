@@ -102,19 +102,19 @@ export class TerrainShape {
 	}
 
 	get height() {
-		return this.#height;
+		return this.terrainType?.usesHeight ? this.#height : null;
 	}
 
 	get elevation() {
-		return this.#elevation;
+		return this.terrainType?.usesHeight ? this.#elevation : null;
 	}
 
 	get top() {
-		return this.#elevation + this.#height;
+		return this.terrainType?.usesHeight ? this.#elevation + this.#height : null;
 	}
 
 	get bottom() {
-		return this.#elevation;
+		return this.terrainType?.usesHeight ? this.#elevation : null;
 	}
 
 	get visible() {
@@ -142,6 +142,19 @@ export class TerrainShape {
 			this.#polygon.toGeoJsonRing(),
 			...this.#holes.map(h => h.toGeoJsonRing())
 		];
+	}
+
+	/**
+	 * A string that represents this shape fully and is shorter than a JSON representation.
+	 */
+	toKeyString() {
+		return (
+			this.#terrainTypeId + "|" +
+			Math.round(this.#height * 100) + "|" + // round and *100 to prevent rounding artifacts like 0.00000001 appearing
+			Math.round(this.#elevation * 100) + "|" +
+			"P" + this.#polygon.vertices.flatMap(({ x, y }) => [x, y]).join(";") + "|" +
+			this.#holes.map(h => `H${h.vertices.flatMap(({ x, y }) => [x, y]).join(";")})`)
+		);
 	}
 
 	/**

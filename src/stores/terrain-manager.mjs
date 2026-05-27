@@ -124,9 +124,9 @@ export class TerrainProvider {
 	constructor() {
 		this.#canvasReadyHookId = Hooks.on("canvasReady", () => this._canvasReady());
 		this.#canvasTearDownHookId = Hooks.on("canvasTearDown", () => this._canvasTearDown());
-		this.#updateSceneHookId = Hooks.on("updateScene", (scene, delta) => {
+		this.#updateSceneHookId = Hooks.on("updateScene", (scene, delta, options, userId) => {
 			if (scene.id === canvas.scene.id)
-				this._updateScene(delta);
+				this._updateScene(scene, delta, options, userId);
 		});
 
 		this.terrainShapes$.subscribe({
@@ -159,9 +159,15 @@ export class TerrainProvider {
 	 * @param {...(TerrainShape | TerrainShape[])} shapes
 	 */
 	setShapes(...shapes) {
-		shapes = shapes?.flat?.(1);
-		if (shapes?.some?.(shape => !(shape instanceof TerrainShape)) !== false)
+		shapes = shapes?.flat?.(1) ?? [];
+		if (shapes.some(shape => !(shape instanceof TerrainShape)) !== false)
 			throw new Error("Expect shapes parameters to be of type TerrainShape");
+
+		// Figure out if any of the existing shapes are already in the set. If so, keep the old reference instead of
+		// replacing it with a new one. This will mean that fewwer/smaller change events are triggered, which is good
+		// for things like the automatic region logic.
+		const existingShapes = new Map([...this.terrainShapes$.value].map(s => [s.toKeyString(), s]));
+		shapes = shapes.map(shape => existingShapes.get(shape.toKeyString()) ?? shape);
 
 		this.terrainShapes$.value = shapes;
 	}
@@ -197,9 +203,14 @@ export class TerrainProvider {
 
 	/**
 	 * Hook handler for when the scene is updated.
+	 * @param {Scene} scene
+	 * @param {any} delta
+	 * @param {any} options
+	 * @param {string} userId
 	 * @protected
 	 */
-	_updateScene(delta) {
+	// eslint-disable-next-line no-unused-vars
+	_updateScene(scene, delta, options, userId) {
 		// When the scene bounds have changed, rebuild the quad tree
 		if (["width", "height", "padding"].some(p => p in delta))
 			this.#rebuildQuadtree();

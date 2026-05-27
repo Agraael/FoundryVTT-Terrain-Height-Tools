@@ -58,7 +58,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	};
 
 	/** @type {Signal<TerrainType[]>} */
-	#terrainTypes = signal([...terrainTypes$.value]);
+	_terrainTypes = signal([...terrainTypes$.value]);
 
 	/** @type {Signal<string | undefined>} */
 	#selectedTerrainTypeId = signal(terrainTypes$.value[0]?.id);
@@ -71,13 +71,16 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	/** @type {(() => void) | undefined} Disposer for the tab-change effect. */
 	#tabEffectDisposer;
 
+	/** @type {Set<{ close: () => void; }>} */
+	#subWindows = new Set();
+
 	/** @override */
 	_renderHTML() {
 		return html`
 			<div class="terrain-type-list-container">
 				<!-- List of terrain types -->
 				<ul class="terrain-type-list">
-					${repeat(this.#terrainTypes.value, terrainType => terrainType.id, (terrainType, terraianTypeIndex) => html`
+					${repeat(this._terrainTypes.value, terrainType => terrainType.id, (terrainType, terraianTypeIndex) => html`
 						<li
 							class=${computed(() => classMap({ active: terrainType.id === this.#selectedTerrainTypeId.value }))}
 							@click=${() => this.#selectedTerrainTypeId.value = terrainType.id}
@@ -95,7 +98,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 
 				<!-- Terrain type form -->
 				<div class="terrain-type-edit-pane">
-					${repeat(this.#terrainTypes.value, terrainType => terrainType.id, (terrainType, terrainTypeIndex) => html`
+					${repeat(this._terrainTypes.value, terrainType => terrainType.id, (terrainType, terrainTypeIndex) => html`
 						<div
 							class="standard-form"
 							style=${computed(() => styleMap({ display: terrainType.id === this.#selectedTerrainTypeId.value ? "flex" : "none" }))}
@@ -170,9 +173,16 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	_preFirstRender(options) {
 		super._preFirstRender(options);
 
+		// Re-render window when terrain types change
+		abortableSubscribe(
+			this._terrainTypes,
+			() => this.render(),
+			this.closeSignal
+		);
+
 		// When user changes something, update the preview which will show on the scene
 		abortableSubscribe(
-			this.#terrainTypes,
+			this._terrainTypes,
 			foundry.utils.debounce(t => previewTerrainTypes$.value = t, 500),
 			this.closeSignal
 		);
@@ -184,6 +194,10 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		this.#tabEffectDisposer = undefined;
 		for (const cm of this.#codeMirrors.values()) cm.toTextArea();
 		this.#codeMirrors.clear();
+
+		for (const subWindow of this.#subWindows)
+			subWindow.close();
+
 		return super.close(options);
 	}
 
@@ -197,7 +211,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		e.stopImmediatePropagation();
 
 		const isFirst = terrainTypeIndex === 0;
-		const isLast = terrainTypeIndex === this.#terrainTypes.value.length - 1;
+		const isLast = terrainTypeIndex === this._terrainTypes.value.length - 1;
 
 		ContextMenu.open(e, [
 			!isFirst && {
@@ -218,7 +232,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			!isLast && {
 				label: l("TERRAINHEIGHTTOOLS.MoveToBottom"),
 				icon: "fas fa-arrow-down-to-line",
-				onClick: () => this.#moveTerrainTypeTo(terrainTypeId, this.#terrainTypes.value.length)
+				onClick: () => this.#moveTerrainTypeTo(terrainTypeId, this._terrainTypes.value.length)
 			},
 			{
 				label: l("Duplicate"),
@@ -798,6 +812,34 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	};
 
 	/** @type {UiPartRenderer} */
+	static _renderBehaviorsTab = ({ app, terrainType, index }) => html`
+		<p class="m-0">${l("TERRAINHEIGHTTOOLS.BehaviorsHelpText")}</p>
+		${when(
+			terrainType.regionBehaviors.length === 0,
+			() => html`
+				<p class="hint text-align-center">${l("TERRAINHEIGHTTOOLS.NoBehaviorsConfigured")}</p>
+			`,
+			() => html`
+				<ul class="tht-behavior-list">
+					${terrainType.regionBehaviors.map(behavior => html`
+						<li @click=${() => app.#editRegionBehavior(terrainType.id, behavior)}>
+							<i class=${CONFIG.RegionBehavior.typeIcons[behavior.type]}></i>
+							<a class="behavior-name">${behavior.name}</a>
+							<a class="fas fa-pen-to-square fa-fw"></a>
+							<a class="fas fa-trash fa-fw" @click=${e => app.#deleteRegionBehavior(e, terrainType.id, behavior._id)}></a>
+						</li>
+					`)}
+				</ul>
+			`
+		)}
+		<button type="button" class="tht-add-behavior-button" @click=${e => app.#showCreateRegionBehaviorMenu(e, terrainType.id)}>
+			<i class="fas fa-plus"></i>
+			${l("REGION.ACTIONS.behaviorCreate")}
+		</button>
+		<input type="hidden" name="${index}.regionBehaviors" data-dtype="JSON" value=${JSON.stringify(terrainType.regionBehaviors)}>
+	`;
+
+	/** @type {UiPartRenderer} */
 	static _renderOtherTab = ({ terrainType, index }) => html`
 		<div class="form-group">
 			<label for="terrainType${index}_isZone">${l("TERRAINHEIGHTTOOLS.IsZone.Name")}</label>
@@ -856,8 +898,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	 * @param {FormDataExtended} formData
 	 */
 	static #onFormSubmit(_event, _form, formData) {
-		this.#terrainTypes.value = this.#getTerrainTypesFromForm(formData);
-		this.render();
+		this._terrainTypes.value = this.#getTerrainTypesFromForm(formData);
 	}
 
 	/**
@@ -867,11 +908,10 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	 * @param {TerrainType[K]} value
 	 */
 	#setTerrainTypeProperty(index, key, value) {
-		this.#terrainTypes.value = this.#terrainTypes.value.with(index, {
-			...this.#terrainTypes.value[index],
+		this._terrainTypes.value = this._terrainTypes.value.with(index, {
+			...this._terrainTypes.value[index],
 			[key]: value
 		});
-		this.render();
 	}
 
 	async #saveTerrainTypes() {
@@ -884,9 +924,8 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	#addTerrainType() {
 		/** @type {TerrainType} */
 		const newTerrainType = createDefaultTerrainType();
-		this.#terrainTypes.value = [...this.#terrainTypes.value, newTerrainType];
+		this._terrainTypes.value = [...this._terrainTypes.value, newTerrainType];
 		this.#selectedTerrainTypeId.value = newTerrainType.id;
-		this.render();
 	}
 
 	/**
@@ -894,16 +933,15 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	 * @param {1 | -1} dir
 	 */
 	#moveTerrainType(terrainTypeId, dir) {
-		const index = this.#terrainTypes.value.findIndex(t => t.id === terrainTypeId);
+		const index = this._terrainTypes.value.findIndex(t => t.id === terrainTypeId);
 
 		// Cannot move if already at the start/end
-		if ((dir > 0 && index >= this.#terrainTypes.value.length) || (dir < 0 && index <= 0)) return;
+		if ((dir > 0 && index >= this._terrainTypes.value.length) || (dir < 0 && index <= 0)) return;
 
-		const newTerrainTypes = [...this.#terrainTypes.value];
+		const newTerrainTypes = [...this._terrainTypes.value];
 		const [terrainType] = newTerrainTypes.splice(index, 1);
 		newTerrainTypes.splice(index + dir, 0, terrainType);
-		this.#terrainTypes.value = newTerrainTypes;
-		this.render();
+		this._terrainTypes.value = newTerrainTypes;
 	}
 
 	/**
@@ -911,38 +949,122 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	 * @param {number} newIndex
 	 */
 	#moveTerrainTypeTo(terrainTypeId, newIndex) {
-		const index = this.#terrainTypes.value.findIndex(t => t.id === terrainTypeId);
+		const index = this._terrainTypes.value.findIndex(t => t.id === terrainTypeId);
 
-		const newTerrainTypes = [...this.#terrainTypes.value];
+		const newTerrainTypes = [...this._terrainTypes.value];
 		const [terrainType] = newTerrainTypes.splice(index, 1);
 		newTerrainTypes.splice(newIndex, 0, terrainType);
-		this.#terrainTypes.value = newTerrainTypes;
-		this.render();
+		this._terrainTypes.value = newTerrainTypes;
 	}
 
 	/** @param {string} terrainTypeId */
 	#duplicateTerrainType(terrainTypeId) {
-		const existingTerrainType = this.#terrainTypes.value.find(t => t.id === terrainTypeId);
+		const existingTerrainType = this._terrainTypes.value.find(t => t.id === terrainTypeId);
 		const newTerrainType = {
 			...existingTerrainType,
 			id: foundry.utils.randomID(),
 			name: existingTerrainType.name + " (2)"
 		};
-		this.#terrainTypes.value = [...this.#terrainTypes.value, newTerrainType];
+		this._terrainTypes.value = [...this._terrainTypes.value, newTerrainType];
 		this.#selectedTerrainTypeId.value = newTerrainType.id;
-		this.render();
 	}
 
 	/** @param {string} terrainTypeId */
 	#deleteTerrainType(terrainTypeId) {
-		this.#terrainTypes.value = this.#terrainTypes.value.filter(t => t.id !== terrainTypeId);
-		this.render();
+		this._terrainTypes.value = this._terrainTypes.value.filter(t => t.id !== terrainTypeId);
+	}
+
+	/**
+	 * @param {Event} e
+	 * @param {string} terrainTypeId
+	 */
+	#showCreateRegionBehaviorMenu(e, terrainTypeId) {
+		const { dataModels, typeLabels, typeIcons } = CONFIG.RegionBehavior;
+
+		ContextMenu.open(e, Object.keys(dataModels).map(key => ({
+			label: l(typeLabels[key]),
+			icon: typeIcons[key],
+			onClick: () => this.#editRegionBehavior(terrainTypeId, {
+				_id: foundry.utils.randomID(),
+				type: key,
+				name: l(typeLabels[key])
+			})
+		})));
+	}
+
+	/**
+	 * Opens a sheet to edit the given behaviour.
+	 * @param {string} terrainTypeId
+	 * @param {any} behaviorData
+	 */
+	#editRegionBehavior(terrainTypeId, behaviorData) {
+		const behaviorDocument = new CONFIG.RegionBehavior.documentClass(behaviorData);
+
+		// Override properties on the document to reroute the data back here (instead of trying to persist the document)
+		//  - Override `collection`, as this collection is checked on submission to see if the document exists and can
+		//    be updated or whether it needs to be created instead. By giving a map with the ID in, that tells the sheet
+		//    to use the update function.
+		//  - Override `update` to capture the data instead of attempting to send it to the server.
+		// By overriding these on the Document instead of the DocumentSheet, that _should_ mean that this helps with
+		// compatibility with other modules' that add behaviours with custom shetes.
+		Object.defineProperties(behaviorDocument, {
+			collection: {
+				value: new Map([[behaviorData._id, behaviorData]])
+			},
+			update: {
+				value: data => {
+					data = { ...data, _id: behaviorData._id };
+
+					// Ensure we fetch a fresh version of the terrain type data, just in case user has been changing
+					// stuff in the main form while the document sheet was open
+					const terrainTypeIndex = this._terrainTypes.value.findIndex(t => t.id === terrainTypeId);
+					if (terrainTypeIndex < 0) return;
+					const terrainType = this._terrainTypes.value[terrainTypeIndex];
+					const behaviorIndex = terrainType.regionBehaviors.findIndex(b => b._id === behaviorData._id);
+
+					this._terrainTypes.value = this._terrainTypes.value.with(terrainTypeIndex, {
+						...terrainType,
+						regionBehaviors: behaviorIndex < 0
+							? [...terrainType.regionBehaviors, data]
+							: terrainType.regionBehaviors.with(behaviorIndex, data)
+					});
+				}
+			}
+		});
+
+		const { sheet } = behaviorDocument;
+		sheet.render(true);
+
+		if (!this.#subWindows.has(sheet)) {
+			this.#subWindows.add(sheet);
+			sheet.addEventListener("close", () => this.#subWindows.delete(sheet), { once: true });
+		}
+	}
+
+	/**
+	 * @param {Event} e
+	 * @param {string} terrainTypeId
+	 * @param {string} behaviorId
+	 */
+	#deleteRegionBehavior(e, terrainTypeId, behaviorId) {
+		e.stopPropagation();
+
+		// Ensure we fetch a fresh version of the terrain type data, just in case user has been changing
+		// stuff in the main form while the document sheet was open
+		const terrainTypeIndex = this._terrainTypes.value.findIndex(t => t.id === terrainTypeId);
+		if (terrainTypeIndex < 0) return;
+		const terrainType = this._terrainTypes.value[terrainTypeIndex];
+
+		this._terrainTypes.value = this._terrainTypes.value.with(terrainTypeIndex, {
+			...terrainType,
+			regionBehaviors: terrainType.regionBehaviors.filter(b => b._id !== behaviorId)
+		});
 	}
 
 	/** @param {string} terrainTypeId */
 	#addTrigger(terrainTypeId) {
 		this.#syncFromForm();
-		this.#terrainTypes.value = this.#terrainTypes.value.map(t => t.id === terrainTypeId
+		this._terrainTypes.value = this._terrainTypes.value.map(t => t.id === terrainTypeId
 			? { ...t, triggers: [...t.triggers ?? [], createDefaultTrigger()] }
 			: t);
 		this.render();
@@ -951,7 +1073,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 	/** @param {string} terrainTypeId @param {string} triggerId */
 	#deleteTrigger(terrainTypeId, triggerId) {
 		this.#syncFromForm();
-		this.#terrainTypes.value = this.#terrainTypes.value.map(t => t.id === terrainTypeId
+		this._terrainTypes.value = this._terrainTypes.value.map(t => t.id === terrainTypeId
 			? { ...t, triggers: (t.triggers ?? []).filter(tr => tr.id !== triggerId) }
 			: t);
 		this.render();
@@ -961,7 +1083,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		if (!this.element) return;
 		for (const cm of this.#codeMirrors.values()) cm.save();
 		const formData = new FormDataExtended(this.element);
-		this.#terrainTypes.value = this.#getTerrainTypesFromForm(formData);
+		this._terrainTypes.value = this.#getTerrainTypesFromForm(formData);
 	}
 
 	/** @override */
@@ -1101,7 +1223,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 				contentClasses: ["terrain-height-tool-window"],
 				resizable: true
 			},
-			content: `<textarea readonly>${JSON.stringify(this.#terrainTypes)}</textarea>`,
+			content: `<textarea readonly>${JSON.stringify(this._terrainTypes)}</textarea>`,
 			buttons: [
 				{
 					icon: "<i class='fas fa-check'></i>",
@@ -1142,7 +1264,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 			// If we're in combine mode (replace = false), then see if there is one already with the same ID
 			const existing = replace
 				? undefined
-				: this.#terrainTypes.value.find(t => t.id === parsed[i].id);
+				: this._terrainTypes.value.find(t => t.id === parsed[i].id);
 
 			// Combine it with defaults,
 			const sanitisedTerrainType = {
@@ -1163,12 +1285,12 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		}
 
 		if (replace) {
-			this.#terrainTypes.value = sanitisedData;
+			this._terrainTypes.value = sanitisedData;
 		} else {
 			// If combining, remove any existing with the same ID as an imported one
 			const newIds = sanitisedData.map(t => t.id);
-			this.#terrainTypes.value = [
-				...this.#terrainTypes.value.filter(t => !newIds.includes(t.id)),
+			this._terrainTypes.value = [
+				...this._terrainTypes.value.filter(t => !newIds.includes(t.id)),
 				...sanitisedData
 			];
 		}
@@ -1255,6 +1377,11 @@ const configTabs = {
 		label: "TERRAINHEIGHTTOOLS.AutoWalls.Tab",
 		icon: "fas fa-block-brick",
 		parts: [TerrainTypesConfig._renderAutoWallsTab]
+	},
+	behaviors: {
+		label: "TERRAINHEIGHTTOOLS.TabBehaviors",
+		icon: "fas fa-child-reaching",
+		parts: [TerrainTypesConfig._renderBehaviorsTab]
 	},
 	other: {
 		label: "TERRAINHEIGHTTOOLS.TabOther",
