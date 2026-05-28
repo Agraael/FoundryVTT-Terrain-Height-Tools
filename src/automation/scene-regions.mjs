@@ -11,7 +11,7 @@ let isSceneReady = false;
 export function initSceneRegionAutomation() {
 	Hooks.on("canvasReady", () => {
 		isSceneReady = true;
-		createOrUpdateRegions(allTerrainShapes$.value);
+		createOrUpdateRegions(allTerrainShapes$.value, true);
 	});
 
 	Hooks.on("canvasTearDown", () => {
@@ -48,8 +48,9 @@ export function initSceneRegionAutomation() {
 /**
  * Adds/updates/deletes regions. Batch when possible to reduce the number of updates.
  * @param {TerrainShape[]} terrainShapes An array of shapes that have changed (including deleted).
+ * @param {boolean} [cleanup] If true, checks all existing regions for any that need cleaning up.
  */
-async function createOrUpdateRegions(terrainShapes) {
+async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 	if (!isSceneReady || !game.user.isActiveGM) return;
 
 	// One scene region represents all shapes of a certain terrain type, top, and bottom. So, given the changed
@@ -76,7 +77,7 @@ async function createOrUpdateRegions(terrainShapes) {
 
 	const regionsToCreate = [];
 	const regionsToUpdate = [];
-	const regionIdsToDelete = [];
+	const regionIdsToDelete = new Set();
 
 	for (const { terrainTypeId, top, bottom } of changedRegions) {
 		const mapKey = getMapKey(terrainTypeId, top, bottom);
@@ -87,7 +88,7 @@ async function createOrUpdateRegions(terrainShapes) {
 		const isRegionNeeded = terrainShapes?.length > 0 && terrainType?.regionBehaviors.length > 0;
 		if (!isRegionNeeded && existingRegion) {
 			debug(`Deleting unnessecary scene region ${terrainType?.name} at ${bottom}->${top} (region '${existingRegion._id}')`);
-			regionIdsToDelete.push(existingRegion._id);
+			regionIdsToDelete.add(existingRegion._id);
 		}
 		if (!isRegionNeeded)
 			continue;
@@ -131,12 +132,22 @@ async function createOrUpdateRegions(terrainShapes) {
 		}
 	}
 
+	if (cleanup) {
+		const neededRegions = new Set([...allTerrainShapes$.value].map(s => getMapKey(s.terrainTypeId, s.top, s.bottom)));
+		for (const [regionKey, region] of existingRegionsLookup) {
+			if (!neededRegions.has(regionKey)) {
+				debug(`Cleaning up unused scene region ('${region._id}')`);
+				regionIdsToDelete.add(region._id);
+			}
+		}
+	}
+
 	await Promise.all([
 		regionsToCreate.length ? canvas.scene.createEmbeddedDocuments("Region", regionsToCreate) : Promise.resolve(),
 		// Updates need to use `recursive: false` because the behaviors is an embedded collection, and so if recursive
 		// is true (like default), then when deleting behaviors from a terrain type they don't deleted from the regions
 		regionsToUpdate.length ? canvas.scene.updateEmbeddedDocuments("Region", regionsToUpdate, { recursive: false }) : Promise.resolve(),
-		regionIdsToDelete.length ? canvas.scene.deleteEmbeddedDocuments("Region", regionIdsToDelete) : Promise.resolve()
+		regionIdsToDelete.size ? canvas.scene.deleteEmbeddedDocuments("Region", [...regionIdsToDelete]) : Promise.resolve()
 	]);
 }
 
