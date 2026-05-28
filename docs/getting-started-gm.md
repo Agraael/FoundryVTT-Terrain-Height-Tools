@@ -111,8 +111,9 @@ This button is the nuclear option for terrain erasure. Every terrain on the map 
 
 I won't go into detail about all the options for tweaking THT here ([but I will over here](./settings-keybinds-reference.md)), howver this feature is worth mentioning.
 
-With '_Automatic Token Elevation Change_' turned on, when someone moves a token around, the elevation of the token will automatically change with respect to the terrain underneath them.
+With '_Automatic Token Elevation Change_' turned on, when someone moves a token (using walk, crawl, climb, jump, teleport, or blink movement type), the elevation of the token will automatically change with respect to the terrain underneath them.
 
 For tokens that are already on the ground, they will remain on the "ground". E.G. a token on the ground that moves over a H2 terrain will have it's elevation set to 2.
 
-Flying tokens will attempt to maintain their relative distance over the ground. For example, if you have a token at an elevation 3 and it moves over a H2 terrain, it's elevation will be set to 5.
+> ![TIP]
+> Note that when moving tokens via keyboard on a gridded scene, Foundry rounds elevation off to the nearest multiple of the scene's 'Grid Scale Distance'. This can cause some weird behavior when used with fractional-height terrain; For example, on a distance 1 scene moving a token on and off a 0.5 height terrain causes it to rise up incorrectly every time. To stop this weird behaviour, THT will round the height of fractional terrain to the nearest whole number. Though this obviously means that fractional terrain is not completely accurate, it does prevent buggy behaviour from manifesting.

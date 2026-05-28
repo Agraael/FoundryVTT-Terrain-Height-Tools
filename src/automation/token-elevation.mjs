@@ -105,5 +105,13 @@ function getHighestTerrainUnderToken(position) {
 		}
 	}
 
-	return highest;
+	// On gridded scenes, when using the arrow keys to move, Foundry will round a token's elevation to the nearest whole
+	// grid scale distance. E.G. on a scene where distaince is 5ft, setting a token to have an elevation of 2.5 and then
+	// moving it to another space using the keyboard causes the elevation to jump to 5. This does not seem to happen if
+	// snapping is disabled or on gridless scenes. This behavior causes problems when using fractional height terrain,
+	// since THT would adjust the elevation to be fraction, then if the user moves the token it then rounds that off.
+	// E.G. moving a token on and off a half height terrain using the keyboard would cause the token to keep rising and
+	// rising. To get around this, we round off all the elevation changes that THT does. This isn't ideal as it means
+	// fractional height terrains don't behave as expected, but it does resolve the issue of indefinitely rising tokens.
+	return gridType === CONST.GRID_TYPES.GRIDLESS ? highest : Math.round(highest);
 }
