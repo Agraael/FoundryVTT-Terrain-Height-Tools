@@ -75,7 +75,7 @@
 		"TerrainTypes.Hint": "Configure what kind of terrain types are available to be drawn to a scene.",
 		"TerrainTypes.Button": "Configure Terrain Types",
 		"TokenElevationChange.Name": "Automatic Token Elevation Change",
-		"TokenElevationChange.Hint": "If enabled, when a token moves over the space of a 'solid' terrain type, the elevation of that token will be adjusted to maintain the same elevation-above-surface as before. E.G. if a token was at an elevation of 1 over a ground cell, then moved over a H2 solid terrain, the token's elevation would be adjusted to 3 (i.e. it is still 1 elevation above the surface). Note that for hex grids, this only works with tokens that have a size of 4 grid units or smaller.",
+		"TokenElevationChange.Hint": "If enabled, when a token moves over the space of a 'solid' terrain type, the elevation of that token will be adjusted to maintain the same elevation-above-surface as before. E.G. if a token was at an elevation of 1 over a ground cell, then moved over a H2 solid terrain, the token's elevation would be adjusted to 3 (i.e. it is still 1 elevation above the surface).",
 		"TokenLosToolPreselectToken1.Name": "Token LoS: Auto-populate Primary Token",
 		"TokenLosToolPreselectToken1.Hint": "If enabled, when selecting the Token Line of Sight tool, will automatically populate the primary token with your owned token (or selected token if you do not own one).",
 		"TokenLosToolPreselectToken2.Name": "Token LoS: Auto-populate Secondary Token",
