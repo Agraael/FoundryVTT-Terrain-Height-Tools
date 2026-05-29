@@ -53,6 +53,29 @@ export function initSceneRegionAutomation() {
 async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 	if (!isSceneReady || !game.user.isActiveGM) return;
 
+	const regionsToCreate = [];
+	const regionsToUpdate = [];
+	const regionIdsToDelete = new Set();
+
+	// If cleaning up, do this first as this will remove duplicate scene regions that have been erroneously created with the same type/top/bottom
+	// Hopefully this should never happen, but it's here as a failsafe.
+	if (cleanup) {
+		const neededRegions = new Set([...allTerrainShapes$.value].map(s => getMapKey(s.terrainTypeId, s.top, s.bottom)));
+		for (const region of getThtSceneRegions()) {
+			const regionKey = getMapKey(
+				region.flags[moduleName]?.[regionFlags.terrainTypeId],
+				region.elevation.top,
+				region.elevation.bottom
+			);
+
+			// Delete the regionKey from the neededRegions set so that if we encounter another region with the same type/top/bottom, we delete it
+			if (!neededRegions.delete(regionKey)) {
+				debug(`Cleaning up unused scene region ('${region._id}')`);
+				regionIdsToDelete.add(region._id);
+			}
+		}
+	}
+
 	// One scene region represents all shapes of a certain terrain type, top, and bottom. So, given the changed
 	// shapes, work out which regions we need to update and calculate the full shapes for that region.
 	// Feels better to have one region per group of shapes, rather than one region per shape? Not sure if it will affect
@@ -74,10 +97,6 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 		const usesHeight = terrainTypeMap$.value.get(s.terrainTypeId)?.usesHeight;
 		return getMapKey(s.terrainTypeId, usesHeight ? s.top : null, usesHeight ? s.bottom : null);
 	});
-
-	const regionsToCreate = [];
-	const regionsToUpdate = [];
-	const regionIdsToDelete = new Set();
 
 	for (const { terrainTypeId, top, bottom } of changedRegions) {
 		const mapKey = getMapKey(terrainTypeId, top, bottom);
@@ -129,16 +148,6 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 		} else {
 			debug(`Creating scene region ${terrainType.name} at ${bottom}->${top}`);
 			regionsToCreate.push(regionData);
-		}
-	}
-
-	if (cleanup) {
-		const neededRegions = new Set([...allTerrainShapes$.value].map(s => getMapKey(s.terrainTypeId, s.top, s.bottom)));
-		for (const [regionKey, region] of existingRegionsLookup) {
-			if (!neededRegions.has(regionKey)) {
-				debug(`Cleaning up unused scene region ('${region._id}')`);
-				regionIdsToDelete.add(region._id);
-			}
 		}
 	}
 
