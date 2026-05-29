@@ -11,7 +11,7 @@ let isSceneReady = false;
 export function initSceneRegionAutomation() {
 	Hooks.on("canvasReady", () => {
 		isSceneReady = true;
-		createOrUpdateRegions(allTerrainShapes$.value, true);
+		createOrUpdateRegionsDebounced(allTerrainShapes$.value, true);
 	});
 
 	Hooks.on("canvasTearDown", () => {
@@ -19,12 +19,12 @@ export function initSceneRegionAutomation() {
 	});
 
 	allTerrainShapes$.subscribe({
-		change: (_values, newShapes, removedShapes) => createOrUpdateRegions([...newShapes, ...removedShapes])
+		change: (_values, newShapes, removedShapes) => createOrUpdateRegionsDebounced([...newShapes, ...removedShapes])
 	});
 
 	// When terrain types change, ensure we update regions (e.g. GM may have added a new behaviour to a terrain type)
 	terrainTypes$.subscribe(() => {
-		createOrUpdateRegions(allTerrainShapes$.value);
+		createOrUpdateRegionsDebounced(allTerrainShapes$.value);
 	});
 
 	// Hide THT regions from the region legend to prevent users editing them manually
@@ -150,6 +150,42 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 		regionIdsToDelete.size ? canvas.scene.deleteEmbeddedDocuments("Region", [...regionIdsToDelete]) : Promise.resolve()
 	]);
 }
+
+/**
+ * A debounced version of `createOrUpdateRegions` which also waits for previous calls to complete.
+ * @type {(...args: Parameters<createOrUpdateRegions>) => void}
+ * @see {createOrUpdateRegions}
+ */
+const createOrUpdateRegionsDebounced = (() => {
+	// Do not use foundry.utils.debounce as we need to combine the terrainShapes array parameters, not just use the latest passed value
+	// We also await the function's completion before triggering another one.
+	let settled = true;
+	let pending = false;
+	let createOrUpdateRegionsDebouncedTimeoutId;
+	let combinedTerrainShapes = new Set();
+	let combinedCleanup = false;
+
+	const callCreateOrUpdateRegions = () => {
+		settled = false;
+		pending = false;
+		createOrUpdateRegions([...combinedTerrainShapes], combinedCleanup).then(() => {
+			settled = true;
+			combinedTerrainShapes = new Set();
+			combinedCleanup = false;
+			if (pending) callCreateOrUpdateRegions(); // ensure we queue any more that happened while waiting for async function to complete
+		});
+	};
+
+	return (terrainShapes, cleanup) => {
+		combinedTerrainShapes = new Set([...combinedTerrainShapes, ...terrainShapes]);
+		combinedCleanup ||= cleanup;
+		pending = true;
+		if (!settled) return;
+
+		clearTimeout(createOrUpdateRegionsDebouncedTimeoutId);
+		createOrUpdateRegionsDebouncedTimeoutId = setTimeout(callCreateOrUpdateRegions, 200);
+	};
+})();
 
 /** Returns all regions in the scene that are handled by THT. */
 function getThtSceneRegions() {
