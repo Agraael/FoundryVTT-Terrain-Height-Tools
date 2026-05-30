@@ -12,7 +12,7 @@ import { PolygonGraphic } from "../../shared/pixi/polygon-graphic.mjs";
 import { terrainTypesWithPreview$, terrainTypesWithPreviewMap$ } from "../../stores/terrain-types.mjs";
 import { chunk } from "../../utils/array-utils.mjs";
 import { toSceneUnits } from "../../utils/grid-utils.mjs";
-import { prettyFraction } from "../../utils/misc-utils.mjs";
+import { isoLabelSkew, prettyFraction } from "../../utils/misc-utils.mjs";
 
 const { CanvasAnimation } = foundry.canvas.animation;
 const { PreciseText } = foundry.canvas.containers;
@@ -206,11 +206,18 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 
 		/** Sets the position of the label so that it's center is at the given positions. */
 		const setLabelPosition = (x, y, rotated) => {
-			label.x = x;
-			label.y = y;
-			label.rotation = rotated
-				? (x < canvas.dimensions.width / 2 ? -1 : 1) * Math.PI / 2
-				: 0;
+			// On iso scenes, cancel the stage skew so the label reads flat (ignore the fit rotation).
+			const iso = isoLabelSkew();
+			if (iso) {
+				label.rotation = 0;
+				label.skew.set(iso.skewX, iso.skewY);
+				label.scale.set(iso.scaleX, iso.scaleY);
+			} else {
+				label.rotation = rotated ? (x < canvas.dimensions.width / 2 ? -1 : 1) * Math.PI / 2 : 0;
+				label.skew.set(0, 0);
+				label.scale.set(1, 1);
+			}
+			label.position.set(x, y);
 		};
 
 		const allEdges = this.shape.polygon.edges.concat(this.shape.holes.flatMap(h => h.edges));

@@ -114,6 +114,13 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 				graphic._redrawLabel();
 		}, tearDownSignal);
 
+		// Shapes draw before iso rotates the stage, so re-do labels next frame to catch the skew.
+		requestAnimationFrame(() => {
+			if (this.#tearDownController?.signal.aborted) return;
+			for (const graphic of this.#allShapeGraphics)
+				graphic._redrawLabel();
+		});
+
 		this.on("globalpointermove", this._onGlobalPointerMove);
 	}
 

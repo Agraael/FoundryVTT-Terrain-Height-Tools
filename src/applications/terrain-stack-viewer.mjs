@@ -1,7 +1,7 @@
 /** @import { TerrainShape } from "../geometry/terrain-shape.mjs" */
 /** @import { TerrainType } from "../stores/terrain-types.mjs" */
-import { computed, effect } from "@preact/signals-core";
-import { html, svg } from "lit";
+import { computed, effect, signal } from "@preact/signals-core";
+import { html, nothing, svg } from "lit";
 import { when } from "lit/directives/when.js";
 import { keyPressed$ } from "../config/keybindings.mjs";
 import { showTerrainStackViewerOnTokenLayer$, terrainStackViewerDisplayMode$ } from "../config/settings.mjs";
@@ -15,6 +15,13 @@ import { toSceneUnits } from "../utils/grid-utils.mjs";
 import { prettyFraction } from "../utils/misc-utils.mjs";
 import { styleTerrainColor } from "./directives/style-terrain-color.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
+
+const TEMPLATEMACRO_ID = "templatemacro";
+
+// Bumped on template CRUD so the viewer refreshes while hovering a zone, not just on cursor move.
+const templatesVersion$ = signal(0);
+for (const hook of ["createMeasuredTemplate", "updateMeasuredTemplate", "deleteMeasuredTemplate"])
+	Hooks.on(hook, () => templatesVersion$.value++);
 
 // How many pixels each unit in height is represented by in proportional mode.
 const proportionalModeScale = 28;
@@ -54,6 +61,21 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		return getShapesAtPoint(x, y);
 	});
 
+	#templatesUnderMouse$ = computed(() => {
+		if (!canvasReady$.value) return [];
+
+		// Reference templatesVersion$ so edits to placed templates re-run this, not just cursor moves.
+		// eslint-disable-next-line no-unused-vars
+		const _ = templatesVersion$.value;
+
+		const api = game.modules.get(TEMPLATEMACRO_ID)?.api;
+		if (!api?.getTemplatesAtPoint) return [];
+
+		const { x, y } = cursorWorldPosition$.value;
+		try { return api.getTemplatesAtPoint(x, y); }
+		catch { return []; }
+	});
+
 	// The stack viewer panel is visible when any of the following are true:
 	// - The hotkey is being held down.
 	// - The user is on the Terrain Height Tools toolbar
@@ -65,7 +87,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		(
 			activeControl$.value === "tokens" &&
 			showTerrainStackViewerOnTokenLayer$.value &&
-			this.#terrainShapesUnderMouse$.value.length > 0
+			(this.#terrainShapesUnderMouse$.value.length > 0 || this.#templatesUnderMouse$.value.length > 0)
 		));
 
 	constructor() {
@@ -86,6 +108,8 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			if (isVisible) {
 				// eslint-disable-next-line no-unused-vars
 				const _ = this.#terrainShapesUnderMouse$.value;
+				// eslint-disable-next-line no-unused-vars
+				const __ = this.#templatesUnderMouse$.value;
 				this.render();
 			}
 		});
@@ -115,8 +139,9 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 	/** @override */
 	_renderHTML() {
 		const shapes = this.#terrainShapesUnderMouse$.value;
+		const templates = this.#templatesUnderMouse$.value;
 
-		if (shapes.length === 0) {
+		if (shapes.length === 0 && templates.length === 0) {
 			return html`<p style="text-align: center;">${l("TERRAINHEIGHTTOOLS.HoverTerrainToShowDetails")}</p>`;
 		}
 
@@ -143,21 +168,47 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			: configuredDisplayMode === "proportional";
 
 		return html`
-			<!-- Non-zone shapes -->
-			${isProportionalDisplayMode
-				? this.#renderProportionalDisplay(nonZoneShapes, highestElevation)
-				: this.#renderCompactDisplay(nonZoneShapes)}
+			${when(shapes.length > 0, () => html`
+				<!-- Non-zone shapes -->
+				${isProportionalDisplayMode
+					? this.#renderProportionalDisplay(nonZoneShapes, highestElevation)
+					: this.#renderCompactDisplay(nonZoneShapes)}
 
-			<!-- Separator -->
-			${when(nonZoneShapes.length && zoneShapes.length, () => html`<hr>`)}
+				<!-- Separator -->
+				${when(nonZoneShapes.length && zoneShapes.length, () => html`<hr>`)}
 
-			<!-- Zones -->
-			${zoneShapes.map(({ terrainType }) => html`
-				<div class="terrain-layer-block" ${styleTerrainColor(terrainType, { lineWidthCssPropertyName: "" })}>
-					<p class="terrain-layer-block-title">${terrainType.name}${triggerIcon(terrainType)}</p>
-				</div>
+				<!-- Zones -->
+				${zoneShapes.map(({ terrainType }) => html`
+					<div class="terrain-layer-block" ${styleTerrainColor(terrainType, { lineWidthCssPropertyName: "" })}>
+						<p class="terrain-layer-block-title">${terrainType.name}${triggerIcon(terrainType)}</p>
+					</div>
+				`)}
 			`)}
+
+			<!-- Separator between terrain and templatemacro zones -->
+			${when(shapes.length > 0 && templates.length > 0, () => html`<hr>`)}
+
+			<!-- templatemacro zones -->
+			${templates.length > 0 ? this.#renderTemplates(templates) : nothing}
 		`;
+	}
+
+	/** @param {{ label: string; hasTrigger: boolean; fillColor: string; borderColor: string; fillOpacity: number; borderOpacity: number; gated: boolean; base: number; top: number; range: number; }[]} templates */
+	#renderTemplates(templates) {
+		const f = v => prettyFraction(v);
+		return html`${templates.map(t => {
+			const style = `background-color: ${rgba(t.fillColor, t.fillOpacity)}; border-color: ${rgba(t.borderColor, t.borderOpacity)};`;
+			return html`
+				<div class="terrain-layer-block" style=${style}>
+					<p class="terrain-layer-block-title">
+						${t.label}${t.hasTrigger ? html` <i class="fas fa-bolt" title=${l("TERRAINHEIGHTTOOLS.Trigger.Tab")}></i>` : ""}
+					</p>
+					${when(t.gated, () => html`
+						<p class="terrain-layer-block-height">${f(t.base)} → ${f(t.top)} (${l("Height")} ${f(t.range)})</p>
+					`)}
+				</div>
+			`;
+		})}`;
 	}
 
 	// TODO: how to handle case where multiple shapes with height overlap at same elevation (e.g. from a provider)?
@@ -226,6 +277,13 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			</div>
 		`)}`;
 	}
+}
+
+// "#rrggbb" (or a numeric colour) + alpha -> "rgba(...)", so template blocks get THT's translucent fill.
+function rgba(hex, alpha) {
+	const n = typeof hex === "number" ? hex : Number.parseInt(String(hex ?? "#000000").replace("#", ""), 16);
+	const r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
+	return `rgba(${r}, ${g}, ${b}, ${alpha ?? 1})`;
 }
 
 function hasEnabledTrigger(terrainType) {

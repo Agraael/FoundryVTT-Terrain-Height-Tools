@@ -9,7 +9,7 @@ import { activeControl$, activeTool$ } from "../stores/scene-controls.mjs";
 import { getShapesByBounds } from "../stores/terrain-manager.mjs";
 import { getTerrainColor, terrainTypeMap$ } from "../stores/terrain-types.mjs";
 import { getGridCellPolygon, getGridCenter, toSceneUnits } from "../utils/grid-utils.mjs";
-import { isPoint3d, prettyFraction } from "../utils/misc-utils.mjs";
+import { isoLabelSkew, isPoint3d, prettyFraction } from "../utils/misc-utils.mjs";
 import { rectangleFromP1P2 } from "../utils/pixi-utils.mjs";
 import { calculateRaysBetweenTokensOrPoints } from "../utils/token-utils.mjs";
 
@@ -699,8 +699,14 @@ class LineOfSightRulerLineCap extends PIXI.Container {
 
 		this.#text = this.addChild(new PreciseText("", CONFIG.canvasTextStyle.clone()));
 		this.#text.anchor.set(0, 0.5);
-		this.#text.position.set(heightIndicatorXOffset, 0);
 		this.#text.style.fill = color;
+		// Keep the height label flat on iso scenes (cancel the stage skew).
+		const iso = isoLabelSkew();
+		if (iso) {
+			this.#text.skew.set(iso.skewX, iso.skewY);
+			this.#text.scale.set(iso.scaleX, iso.scaleY);
+		}
+		this.#text.position.set(heightIndicatorXOffset, 0);
 
 		this.addChild(new PIXI.Graphics())
 			.beginFill(color, 0.5)

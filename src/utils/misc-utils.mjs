@@ -28,6 +28,30 @@ export function prettyFraction(v) {
 }
 
 /**
+ * Skew/scale that cancels the iso stage so a label reads flat, or null when the stage is unskewed.
+ * Computed locally so it works before lancer-automations' api loads. Respects LA's iso.moduleLabels toggle when present.
+ * @returns {{ skewX: number, skewY: number, scaleX: number, scaleY: number } | null}
+ */
+export function isoLabelSkew() {
+	const st = canvas.app?.stage;
+	if (!st || (st.rotation === 0 && st.skew.x === 0 && st.skew.y === 0)) return null;
+	try {
+		if (game.modules.get("lancer-automations") && !game.settings.get("lancer-automations", "iso.moduleLabels")) return null;
+	} catch { /* setting not registered */ }
+	const t = new PIXI.Transform();
+	t.rotation = st.rotation;
+	t.skew.set(st.skew.x, st.skew.y);
+	t.updateLocalTransform();
+	const m = t.localTransform.clone().invert();
+	return {
+		skewX: -Math.atan2(-m.c, m.d),
+		skewY: Math.atan2(m.b, m.a),
+		scaleX: Math.hypot(m.a, m.b),
+		scaleY: Math.hypot(m.c, m.d),
+	};
+}
+
+/**
 * @param {*} obj
 * @returns {obj is Point3D}
 */

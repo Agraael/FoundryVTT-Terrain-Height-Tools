@@ -69,15 +69,22 @@ export class LineOfSightRulerToolbar extends ThtToolbarMixin(LitApplicationMixin
 				</div>
 			</div>
 
-			<label class="tht-toolbar-checkbox flex0">
-				<input
-					type="checkbox"
-					name="rulerIncludeNoHeightTerrain"
-					.checked=${includeNoHeightTerrain$}
-					@change=${this.#onIncludeNoHeightTerrainChange}
-				>
-				<span inert>${l("TERRAINHEIGHTTOOLS.IncludeZones")}</span>
-			</label>
+			<button
+				type="button"
+				name="rulerIncludeNoHeightTerrain"
+				class="tht-toolbar-icon-toggle flex0"
+				data-tooltip=${l("TERRAINHEIGHTTOOLS.IncludeZones")}
+				style=${computed(() => `
+					margin-top: 1.25rem; padding: 4px 8px;
+					background: ${includeNoHeightTerrain$.value ? "var(--color-warm-2, rgba(255,100,0,0.18))" : "transparent"};
+					border: 1px solid ${includeNoHeightTerrain$.value ? "var(--color-border-highlight, #ff6400)" : "var(--color-cool-4, #555)"};
+					border-radius: 4px; cursor: pointer; opacity: ${includeNoHeightTerrain$.value ? "1" : "0.65"};
+					line-height: 1;
+				`)}
+				@click=${this.#onIncludeNoHeightTerrainToggle}
+			>
+				<i class="fa-solid fa-layer-group"></i>
+			</button>
 		`;
 	}
 
@@ -101,8 +108,7 @@ export class LineOfSightRulerToolbar extends ThtToolbarMixin(LitApplicationMixin
 			lineOfSightRulerConfig$.h2.value = val;
 	}
 
-	/** @param {InputEvent} e */
-	#onIncludeNoHeightTerrainChange(e) {
-		includeNoHeightTerrain$.value = e.target.checked;
+	#onIncludeNoHeightTerrainToggle() {
+		includeNoHeightTerrain$.value = !includeNoHeightTerrain$.value;
 	}
 }
