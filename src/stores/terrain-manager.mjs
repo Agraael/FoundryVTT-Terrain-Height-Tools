@@ -125,7 +125,7 @@ export class TerrainProvider {
 		this.#canvasReadyHookId = Hooks.on("canvasReady", () => this._canvasReady());
 		this.#canvasTearDownHookId = Hooks.on("canvasTearDown", () => this._canvasTearDown());
 		this.#updateSceneHookId = Hooks.on("updateScene", (scene, delta, options, userId) => {
-			if (scene.id === canvas.scene.id)
+			if (canvas.scene && scene.id === canvas.scene.id)
 				this._updateScene(scene, delta, options, userId);
 		});
 

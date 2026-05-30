@@ -15,7 +15,7 @@ export const sceneRenderAboveTilesChoice$ = signal(null);
 
 export function onUpdateScene(scene) {
 	// A scene other than the one the current user is on was updated
-	if (scene.id !== canvas.scene.id) return;
+	if (!canvas.scene || scene.id !== canvas.scene.id) return;
 	onCanvasReady({ scene });
 }
 

@@ -2,7 +2,7 @@
 	"id": "terrain-height-tools",
 	"title": "Terrain Height Tools (Lasossis's Fork)",
 	"description": "Tools for painting grid cells with terrain heights and calculating line of sight with respect to these heights.",
-	"version": "0.7.9",
+	"version": "0.7.10",
 	"compatibility": {
 		"minimum": "13",
 		"verified": "13",
