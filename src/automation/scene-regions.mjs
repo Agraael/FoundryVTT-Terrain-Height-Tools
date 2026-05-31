@@ -37,11 +37,16 @@ export function initSceneRegionAutomation() {
 	// If the user DOES somehow open a THT region's config, then show a warning instead
 	Hooks.on("renderRegionConfig", (regionConfig, element) => {
 		if (!getThtSceneRegions().includes(regionConfig.document)) return;
-		[...element.querySelectorAll(".window-content > *")].forEach(e => e.style.setProperty("display", "none"));
+
+		// Add a warning message
 		const warningElement = document.createElement("div");
 		warningElement.innerHTML = game.i18n.localize("TERRAINHEIGHTTOOLS.RegionManagedByThtWarning");
 		warningElement.style.setProperty("color", "var(--error-color)");
 		element.querySelector(".window-content").prepend(warningElement);
+
+		// Disable inputs/buttons to discourage editing
+		for (const elementToDisable of element.querySelectorAll(".window-content :is(input, select, a:not([data-action='tab']), button)"))
+			elementToDisable.setAttribute("disabled", "disabled");
 	});
 }
 
