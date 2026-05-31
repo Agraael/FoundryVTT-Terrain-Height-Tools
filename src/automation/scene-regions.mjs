@@ -69,8 +69,8 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 		for (const region of getThtSceneRegions()) {
 			const regionKey = getMapKey(
 				region.flags[moduleName]?.[regionFlags.terrainTypeId],
-				region.elevation.top,
-				region.elevation.bottom
+				region._source.elevation.top,
+				region._source.elevation.bottom
 			);
 
 			// Delete the regionKey from the neededRegions set so that if we encounter another region with the same type/top/bottom, we delete it
