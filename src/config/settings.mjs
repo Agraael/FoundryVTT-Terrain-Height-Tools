@@ -2,7 +2,7 @@
 import { signal } from "@preact/signals-core";
 import { html, render } from "lit";
 import { TerrainTypesConfig } from "../applications/terrain-types-config.mjs";
-import { moduleName, sceneFlags, settingNames, terrainStackViewerDisplayModes, tokenRelativeHeights, toolbarPositions } from "../consts.mjs";
+import { moduleName, sceneFlags, settingNames, terrainStackViewerDisplayModes, tokenFlags, tokenRelativeHeights, toolbarPositions } from "../consts.mjs";
 import { loadTerrainTypes } from "../stores/terrain-types.mjs";
 
 export const showTerrainHeightOnTokenLayer$ = signal(false);
@@ -10,6 +10,8 @@ export const showTerrainStackViewerOnTokenLayer$ = signal(false);
 /** @type {Signal<terrainStackViewerDisplayModes>} */
 export const terrainStackViewerDisplayMode$ = signal("auto");
 export const terrainHeightLayerVisibilityRadius$ = signal(0);
+export const tokenElevationChange$ = signal(false);
+export const tokenElevationChangeInsertClimbWaypoints$ = signal(false);
 export const showZonesAboveNonZones$ = signal(false);
 export const useFractionsForLabels$ = signal(true);
 export const terrainLayerAboveTilesDefault$ = signal(true);
@@ -172,14 +174,23 @@ export function registerSettings() {
 		default: true
 	});
 
-	/* registerSetting(settingNames.tokenElevationChange, {
+	registerSetting(settingNames.tokenElevationChange, {
 		name: "SETTINGS.TokenElevationChange.Name",
 		hint: "SETTINGS.TokenElevationChange.Hint",
 		scope: "world",
 		type: Boolean,
 		config: true,
 		default: false
-	}); */
+	}, tokenElevationChange$);
+
+	registerSetting(settingNames.tokenElevationChangeInsertClimbWaypoints, {
+		name: "SETTINGS.TokenElevationChangeInsertClimbWaypoints.Name",
+		hint: "SETTINGS.TokenElevationChangeInsertClimbWaypoints.Hint",
+		scope: "world",
+		type: Boolean,
+		config: true,
+		default: false
+	}, tokenElevationChangeInsertClimbWaypoints$);
 
 	registerSetting(settingNames.showZonesAboveNonZones, {
 		name: "SETTINGS.ShowZonesAboveNonZones.Name",
@@ -261,4 +272,26 @@ export function addAboveTilesToSceneConfig(sceneConfig, element) {
 			</select>
 		</div>
 	`, element.querySelector(".tab[data-tab='grid']"));
+}
+
+/**
+ * When token config is rendered, add a checkbox to ignore automatic elevation changes.
+ * @param {TokenConfig} tokenConfig
+ * @param {HTMLElement} element
+ */
+export function addIgnoreAutoElevationToTokenConfig(tokenConfig, element) {
+	// Don't show the checkbox if the token elevation change setting isn't active
+	if (!game.settings.get(moduleName, settingNames.tokenElevationChange)) return;
+
+	const currentValue = tokenConfig.token.getFlag(moduleName, tokenFlags.ignoreAutoElevation) ?? false;
+
+	render(html`
+		<div class="form-group">
+			<label>${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreAutoElevation.Name")}</label>
+			<div class="form-fields">
+				<input type="checkbox" name="flags.${moduleName}.${tokenFlags.ignoreAutoElevation}" ?checked=${currentValue} />
+			</div>
+			<p class="hint">${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreAutoElevation.Hint")}</p>
+		</div>
+	`, element.querySelector('.tab[data-tab="identity"]'));
 }

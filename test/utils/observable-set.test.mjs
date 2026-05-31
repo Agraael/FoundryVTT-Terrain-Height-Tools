@@ -8,40 +8,44 @@ describe("ObservableSet", () => {
 	let set;
 
 	describe("value", () => {
-		it("when given a new value that is identical, should not notify any subscribers", () => {
+		it("when given a new value that is identical, should not notify any subscribers", async () => {
 			set = new ObservableSet([1, 2, 3]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			set.value = [1, 2, 3];
+			await Promise.resolve();
 
 			assert.equal(change.mock.callCount(), 0);
 			assert.equal(add.mock.callCount(), 0);
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("when given a new value that adds items, should notify change and add subscribers", () => {
+		it("when given a new value that adds items, should notify change and add subscribers", async () => {
 			set = new ObservableSet([1, 2, 3]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			set.value = [1, 2, 3, 4, 5];
+			await Promise.resolve();
 
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], [1, 2, 3, 4, 5]);
 			assert.deepEqual([...add.mock.calls[0].arguments[0]], [4, 5]);
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("when given a new value that removes items, should notify change and remove subscribers", () => {
+		it("when given a new value that removes items, should notify change and remove subscribers", async () => {
 			set = new ObservableSet([1, 2, 3]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			set.value = [1, 3];
+			await Promise.resolve();
 
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], [1, 3]);
 			assert.equal(add.mock.callCount(), 0);
 			assert.deepEqual([...remove.mock.calls[0].arguments[0]], [2]);
 		});
 
-		it("when given a new value that adds and removes items, should notify all subscribers", () => {
+		it("when given a new value that adds and removes items, should notify all subscribers", async () => {
 			set = new ObservableSet([1, 2, 3]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			set.value = [4, 5];
+			await Promise.resolve();
 
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], [4, 5]);
 			assert.deepEqual([...add.mock.calls[0].arguments[0]], [4, 5]);
@@ -66,10 +70,11 @@ describe("ObservableSet", () => {
 	});
 
 	describe("add()", () => {
-		it("one value, when the value does not exist in the set, should notify change and add subscribers", () => {
+		it("one value, when the value does not exist in the set, should notify change and add subscribers", async () => {
 			set = new ObservableSet(["foo"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.add("bar");
+			await Promise.resolve();
 
 			assert.equal(result, true);
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], ["foo", "bar"]);
@@ -77,10 +82,11 @@ describe("ObservableSet", () => {
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("one value, when the value already exists in the set, should not notify any subscribers", () => {
+		it("one value, when the value already exists in the set, should not notify any subscribers", async () => {
 			set = new ObservableSet(["hello", "world"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.add("world");
+			await Promise.resolve();
 
 			assert.equal(result, false);
 			assert.equal(change.mock.callCount(), 0);
@@ -88,10 +94,11 @@ describe("ObservableSet", () => {
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("multiple values, when no values exist in the set, should notify change and add subscribers", () => {
+		it("multiple values, when no values exist in the set, should notify change and add subscribers", async () => {
 			set = new ObservableSet(["foo"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.add("bar", "buzz");
+			await Promise.resolve();
 
 			assert.equal(result, true);
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], ["foo", "bar", "buzz"]);
@@ -99,10 +106,11 @@ describe("ObservableSet", () => {
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("multiple values, when some values exist in the set, should notify change and add subscribers", () => {
+		it("multiple values, when some values exist in the set, should notify change and add subscribers", async () => {
 			set = new ObservableSet(["foo", "bar"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.add("bar", "buzz");
+			await Promise.resolve();
 
 			assert.equal(result, true);
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], ["foo", "bar", "buzz"]);
@@ -110,10 +118,11 @@ describe("ObservableSet", () => {
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("multiple values, when all values already exist in the set, should not notify any subscribers", () => {
+		it("multiple values, when all values already exist in the set, should not notify any subscribers", async () => {
 			set = new ObservableSet(["hello", "world"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.add("hello", "world");
+			await Promise.resolve();
 
 			assert.equal(result, false);
 			assert.equal(change.mock.callCount(), 0);
@@ -123,10 +132,11 @@ describe("ObservableSet", () => {
 	});
 
 	describe("delete()", () => {
-		it("one value, when the value does not exist in the set, should not notify any subscribers", () => {
+		it("one value, when the value does not exist in the set, should not notify any subscribers", async () => {
 			set = new ObservableSet([1, 2]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.delete(3);
+			await Promise.resolve();
 
 			assert.equal(result, false);
 			assert.equal(change.mock.callCount(), 0);
@@ -134,10 +144,11 @@ describe("ObservableSet", () => {
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("one value, when the value already exists in the set, should notify change and remove subscribers", () => {
+		it("one value, when the value already exists in the set, should notify change and remove subscribers", async () => {
 			set = new ObservableSet(["a", "b"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.delete("a");
+			await Promise.resolve();
 
 			assert.equal(result, true);
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], ["b"]);
@@ -145,10 +156,11 @@ describe("ObservableSet", () => {
 			assert.deepEqual([...remove.mock.calls[0].arguments[0]], ["a"]);
 		});
 
-		it("multiple values, when no values exist in the set, should not notify any subscribers", () => {
+		it("multiple values, when no values exist in the set, should not notify any subscribers", async () => {
 			set = new ObservableSet([1, 2]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.delete(3);
+			await Promise.resolve();
 
 			assert.equal(result, false);
 			assert.equal(change.mock.callCount(), 0);
@@ -156,10 +168,11 @@ describe("ObservableSet", () => {
 			assert.equal(remove.mock.callCount(), 0);
 		});
 
-		it("multiple values, when some values already exists in the set, should notify change and remove subscribers", () => {
+		it("multiple values, when some values already exists in the set, should notify change and remove subscribers", async () => {
 			set = new ObservableSet(["a", "b", "c"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.delete("b", "d");
+			await Promise.resolve();
 
 			assert.equal(result, true);
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], ["a", "c"]);
@@ -167,10 +180,11 @@ describe("ObservableSet", () => {
 			assert.deepEqual([...remove.mock.calls[0].arguments[0]], ["b"]);
 		});
 
-		it("multiple values, when all values already exists in the set, should notify change and remove subscribers", () => {
+		it("multiple values, when all values already exists in the set, should notify change and remove subscribers", async () => {
 			set = new ObservableSet(["a", "b", "c", "d"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			const result = set.delete("c", "d");
+			await Promise.resolve();
 
 			assert.equal(result, true);
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], ["a", "b"]);
@@ -180,20 +194,22 @@ describe("ObservableSet", () => {
 	});
 
 	describe("clear()", () => {
-		it("when the set contains items, should empty the set and notify the change and remove subscribers", () => {
+		it("when the set contains items, should empty the set and notify the change and remove subscribers", async () => {
 			set = new ObservableSet(["a", "b", "c"]);
 			const { change, add, remove } = subscribeMockCallbacks();
 			set.clear();
+			await Promise.resolve();
 
 			assert.deepEqual([...change.mock.calls[0].arguments[0]], []);
 			assert.equal(add.mock.callCount(), 0);
 			assert.deepEqual([...remove.mock.calls[0].arguments[0]], ["a", "b", "c"]);
 		});
 
-		it("when the set does not contain items, should not notify any subscribers", () => {
+		it("when the set does not contain items, should not notify any subscribers", async () => {
 			set = new ObservableSet();
 			const { change, add, remove } = subscribeMockCallbacks();
 			set.clear();
+			await Promise.resolve();
 
 			assert.equal(change.mock.callCount(), 0);
 			assert.equal(add.mock.callCount(), 0);
@@ -202,7 +218,7 @@ describe("ObservableSet", () => {
 	});
 
 	describe("subscribe()", () => {
-		it("when passed an AbortSignal, should unsubscribe when the abort signal is triggered", () => {
+		it("when passed an AbortSignal, should unsubscribe when the abort signal is triggered", async () => {
 			set = new ObservableSet([1, 2]);
 
 			const abortController = new AbortController();
@@ -210,12 +226,14 @@ describe("ObservableSet", () => {
 			set.subscribe(observer, { signal: abortController.signal });
 
 			set.add(5);
+			await Promise.resolve();
 			assert.equal(observer.change.mock.callCount(), 1);
 			observer.change.mock.resetCalls();
 
 			abortController.abort();
 
 			set.add(10);
+			await Promise.resolve();
 			assert.equal(observer.change.mock.callCount(), 0);
 		});
 	});

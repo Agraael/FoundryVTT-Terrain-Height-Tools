@@ -82,10 +82,9 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 		canvas.app.ticker.remove(this.#boundTick);
 	}
 
-	/**
-	 * We will always use an elevation of 0, so that overhead tokens always render above.
-	 */
-	elevation = 0;
+	get elevation() {
+		return this.shape.elevation;
+	}
 
 	/**
 	 * `sortLayer` is the first tie-break and varies depending on the item type (e.g. tiles = 500, tokens = 700)

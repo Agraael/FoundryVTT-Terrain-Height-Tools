@@ -58,6 +58,7 @@ export const settingNames = /** @type {const} */ ({
 	terrainStackViewerDisplayMode: "terrainStackViewerDisplayMode",
 	terrainTypes: "terrainTypes",
 	tokenElevationChange: "tokenElevationChange",
+	tokenElevationChangeInsertClimbWaypoints: "tokenElevationChangeInsertClimbWaypoints",
 	tokenLosToolPreselectToken1: "tokenLosToolPreselectToken1",
 	tokenLosToolPreselectToken2: "tokenLosToolPreselectToken2",
 	toolbarAutofade: "toolbarAutofade",

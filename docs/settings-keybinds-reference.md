@@ -39,9 +39,9 @@ If true, when selecting the Token Line of Sight tool, THT will attempt to popula
 It will use the first targeted token on the scene, if there is one.
 
 ### Automatic Token Elevation Change
-If true, when anyone moves a token, the token's elevation will be automatically adjusted as it moves over terrain.
+If true, when anyone moves a token, the token's elevation will be automatically adjusted as it moves over terrain as long as it's movement is walk, crawl, climb, jump, teleport, or blink.
 
-THT will maintain the relative height above the ground for a token. For example, if a token was at elevation 1, when moving it over H2 terrain, it's elevation will become 3 (i.e. it is still 1 above the ground). Non-solid terrain is excluded from this. If the token occupies multiple different terrains, the highest one takes precedence.
+THT will maintain the relative height above the ground for a token. For example, if a token was at elevation 1, when moving it over H2 terrain, it's elevation will become 3 (i.e. it is still 1 above the ground). Non-solid terrain is excluded from this. If the token occupies multiple different terrains, the highest solid one takes precedence.
 
 
 ## GM Users Only
@@ -80,7 +80,7 @@ While you are using the Line of Sight Ruler tool, you can press the keybind to i
 - When you are dragging the ruler, pressing this will increase/decrease the elevation of the end point.
 
 ### Show Terrain Viewer
-_Defaults to_ <kbd>Q</kbd>.
+_Defaults to_ <kbd>;</kbd>.
 
 While holding this keybinding, the Terrain Viewer will be shown in the bottom right of the screen.
 

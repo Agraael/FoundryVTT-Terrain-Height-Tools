@@ -235,6 +235,52 @@ const getRectangleHexTokenSpaces = cacheReturn(
 	}
 );
 
+const getEllipseGridlessTokenSpaces = cacheReturn(
+	/**
+	 * Generates space for an elliptcal gridless token. Does so by generating the spaces that it would for a rectangle,
+	 * and then scaling them inwards based on how far out the ellipse they are - sort of like "bending" the grid.
+	 * @param {number} width Size of the token in the primary direction, measured in cells.
+	 * @param {number} height Size of the token in the secondary direction, measured in cells.
+	 */
+	function(width, height) {
+		/** @type {{ x: number; y: number; }} */
+		const spaces = [];
+
+		// cx and rx are the same, as are cy and ry, but differentiating them helps to imagine what's going on
+		const cx = width / 2;
+		const cy = height / 2;
+		const rx = width / 2;
+		const ry = height / 2;
+
+		for (let x = 0; x < width; x++) {
+			for (let y = 0; y < height; y++) {
+				const dx = x + 0.5 - cx;
+				const dy = y + 0.5 - cy;
+				const angle = Math.atan2(dy, dx);
+				const distance = Math.sqrt((dx * dx) + (dy * dy));
+				const cos = Math.cos(angle);
+				const sin = Math.sin(angle);
+
+				const ellipseRadius = (rx * ry) / Math.sqrt((ry * ry * cos * cos) + (rx * rx * sin * sin));
+
+				const maxDistX = cos > 0 ? (width - cx) / cos : -cx / cos;
+				const scaleFactorX = ellipseRadius / maxDistX;
+				const scaledDistanceX = distance * scaleFactorX;
+				const finalX = cx + (scaledDistanceX * cos);
+
+				const maxDistY = sin > 0 ? (height - cy) / sin : -cy / sin;
+				const scaleFactorY = ellipseRadius / maxDistY;
+				const scaledDistanceY = distance * scaleFactorY;
+				const finalY = cy + (scaledDistanceY * sin);
+
+				spaces.push({ x: finalX, y: finalY });
+			}
+		}
+
+		return spaces;
+	}
+);
+
 /**
  * @param {number} x Token X.
  * @param {number} y Token Y.
@@ -242,16 +288,18 @@ const getRectangleHexTokenSpaces = cacheReturn(
  * @param {number} height Token height (in grid spaces).
  * @param {number} gridType The type of grid.
  * @param {number} gridSize The size of the grid in pixels.
- * @param {number} shape For hexagonal tokens, the type of hex shape used.
+ * @param {number} shape The type of shape used.
  */
 export function getSpacesUnderToken(x, y, width, height, gridType, gridSize, shape) {
-	// Gridless is not supported
-	if (gridType === CONST.GRID_TYPES.GRIDLESS) {
-		return [];
+	// Tokens on gridless can show either as ellipses or rectangles. For ellipses, we'll calculate the points by evenly
+	// distributing them in a radius around the center
+	if (gridType === CONST.GRID_TYPES.GRIDLESS && [CONST.TOKEN_SHAPES.ELLIPSE_1, CONST.TOKEN_SHAPES.ELLIPSE_2].includes(shape)) {
+		return getEllipseGridlessTokenSpaces(width, height)
+			.map(p => ({ x: x + (p.x * gridSize), y: y + (p.y * gridSize) }));
 	}
 
-	// For square, can easily work the points out by enumerating over the width/height
-	if (gridType === CONST.GRID_TYPES.SQUARE) {
+	// For square grids, or rectangle tokens on gridless, can easily work the points out by enumerating over the width/height
+	if ([CONST.GRID_TYPES.SQUARE, CONST.GRID_TYPES.GRIDLESS].includes(gridType)) {
 		return getSquareTokenSpaces(width, height)
 			.map(p => ({ x: x + (p.x * gridSize), y: y + (p.y * gridSize) }));
 	}
@@ -289,6 +337,21 @@ export function getSpacesUnderToken(x, y, width, height, gridType, gridSize, sha
 			throw new Error("Unknown hex grid type.");
 	}
 }
+
+/* globalThis.__debugGetSpacesUnderToken = token => {
+	token ??= canvas.tokens.controlled?.[0];
+	if (!token) return;
+	const { x, y, width, height, shape } = token.document;
+	const { type, size } = canvas.grid;
+
+	const color = Math.random() * 0xFF0000;
+	const g = canvas.controls.debug;
+	for (const point of getSpacesUnderToken(x, y, width, height, type, size, shape)) {
+		g.beginFill(color);
+		g.drawCircle(point.x, point.y, 5);
+		g.endFill();
+	}
+}; */
 
 /**
  * Given a list of cells and a grid, combines them together into as few polygons as possible.

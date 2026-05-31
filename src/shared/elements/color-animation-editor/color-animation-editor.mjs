@@ -32,15 +32,11 @@ class ColorAnimationEditorElement extends AbstractDropdownElement {
 
 	static formAssociated = true;
 
-	#internals;
-
 	/** @type {{ value?: HTMLElement }} */
 	#gradientPreviewRef = createRef();
 
 	constructor() {
 		super();
-
-		this.#internals = this.attachInternals();
 
 		/** @type {ColorAnimation} */
 		this.value = {
@@ -64,7 +60,7 @@ class ColorAnimationEditorElement extends AbstractDropdownElement {
 	}
 
 	get form() {
-		return this.#internals.form;
+		return this._internals.form;
 	}
 
 	_renderButton() {
@@ -305,7 +301,7 @@ class ColorAnimationEditorElement extends AbstractDropdownElement {
 	/** @param {ColorAnimation} value */
 	#setValue(value) {
 		this.value = value;
-		this.#internals.setFormValue(JSON.stringify(value));
+		this._internals.setFormValue(JSON.stringify(value));
 		this.dispatchEvent(new Event("input", { bubbles: true, cancelable: false, composed: true }));
 	}
 

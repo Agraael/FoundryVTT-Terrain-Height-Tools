@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "tsdown -w",
-		"build": "rNODE_ENV=production tsdown",
+		"build": "NODE_ENV=production tsdown",
 		"test": "node --test test/**/*.test.mjs",
 		"lint": "eslint -c eslint.config.mjs"
 	},

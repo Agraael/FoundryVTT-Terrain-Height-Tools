@@ -9,7 +9,7 @@ const { Token } = foundry.canvas.placeables;
  * @param {TokenDocument} tokenDoc
  * @returns {number}
  */
-function getTokenHeight(tokenDoc) {
+export function getTokenHeight(tokenDoc) {
 	// If the wall height module is installed, we can use the value the user has put in the token height field in the
 	// token config. Note that we explicitly check the module is enabled so that if the user uninstalls it later, we
 	// don't end up with values in the flags (that the user can't see without debugging) causing behaviour changes.

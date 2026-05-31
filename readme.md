@@ -91,3 +91,11 @@ The action only runs on the active GM client. The hook itself fires for everyone
 Added on top of upstream:
 - `terrainHeightTools.isTokenInsideShape(tokenDoc, shape, rule, position?)`
 - `terrainHeightTools.getContainingTriggerMatches(tokenDoc, position?)`
+
+## See Also
+- [Settings & Keybinds Reference](./docs/settings-keybinds-reference.md)
+- [API Reference (for macros and modules)](./docs/api.md)
+
+## Acknowledgements
+
+- Some of the textures provided with the module have been made using icons from [game-icons.net](https://game-icons.net/).

@@ -3,9 +3,10 @@ import { TerrainStackViewer } from "./applications/terrain-stack-viewer.mjs";
 import { initAutoWallEdges } from "./auto-wall-edges.mjs";
 import { TokenLineOfSightToolbar } from "./applications/token-line-of-sight-toolbar.mjs";
 import { initSceneRegionAutomation } from "./automation/scene-regions.mjs";
+import * as autoTokenElevation from "./automation/token-elevation.mjs";
 import { registerSceneControls } from "./config/controls.mjs";
 import { registerKeybindings } from "./config/keybindings.mjs";
-import { addAboveTilesToSceneConfig, registerSettings } from "./config/settings.mjs";
+import { addAboveTilesToSceneConfig, addIgnoreAutoElevationToTokenConfig, registerSettings } from "./config/settings.mjs";
 import { heightMapProviderId, moduleName, socketFuncs, socketName, tools } from "./consts.mjs";
 import { heightMap } from "./geometry/height-map.mjs";
 import { LineOfSightRulerLayer } from "./layers/line-of-sight-ruler-layer.mjs";
@@ -40,10 +41,13 @@ function init() {
 	Hooks.on("getSceneControlButtons", registerSceneControls);
 	Hooks.on("activateSceneControls", updateActiveControlTool);
 	Hooks.on("renderSceneConfig", addAboveTilesToSceneConfig);
+	Hooks.on("renderTokenConfig", addIgnoreAutoElevationToTokenConfig);
 
 	Hooks.on("updateScene", canvasStore.onUpdateScene);
 	Hooks.on("canvasReady", canvasStore.onCanvasReady);
 	Hooks.on("canvasTearDown", canvasStore.onCanvasTearDown);
+
+	Hooks.on("preCreateToken", autoTokenElevation.onTokenPreCreate);
 
 	registerKeybindings();
 
@@ -72,14 +76,40 @@ function ready() {
 }
 
 function initLibWrapper() {
-	// The _onClickLeft wrapper intentionally consumes the click (no chain) while selecting a token for the LoS tool.
-	// Declare expected conflicts with modules that also wrap _onClickLeft so libWrapper doesn't warn at runtime.
 	try {
 		libWrapper.ignore_conflicts(moduleName, ["smart-target"], [
 			"foundry.canvas.placeables.Token.prototype._onClickLeft",
 			"foundry.canvas.interaction.MouseInteractionManager.prototype.can"
 		]);
 	} catch { /* libWrapper version may not expose ignore_conflicts; safe to skip */ }
+
+	libWrapper.register(
+		moduleName,
+		"CONFIG.Token.objectClass.prototype._getDragWaypointPosition",
+		autoTokenElevation.tokenGetDragWaypointPositionWrapper,
+		libWrapper.WRAPPER
+	);
+
+	libWrapper.register(
+		moduleName,
+		"CONFIG.Token.objectClass.prototype._getShiftedPosition",
+		autoTokenElevation.tokenGetShiftedPositionWrapper,
+		libWrapper.WRAPPER
+	);
+
+	libWrapper.register(
+		moduleName,
+		"CONFIG.Token.documentClass.prototype.getCompleteMovementPath",
+		autoTokenElevation.tokenDocumentGetCompleteMovementPathWrapper,
+		libWrapper.WRAPPER
+	);
+
+	libWrapper.register(
+		moduleName,
+		"CONFIG.Token.layerClass.prototype._prepareKeyboardMovementUpdates",
+		autoTokenElevation.tokenLayerPrepareKeyboardMovementUpdatesWrapper,
+		libWrapper.WRAPPER
+	);
 
 	// Patches to allow clicking on a token to select it for the token line of sight
 	// Since players are not allowed to click on tokens they do not own (in which case `_onClickLeft` does not even get
