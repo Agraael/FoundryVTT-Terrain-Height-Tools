@@ -60,6 +60,7 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {number | null} defaultHeight
  * @property {number | null} defaultElevation
  * @property {number} movementPenalty
+ * @property {boolean} noClimbingCost
  * @property {TerrainTrigger[]} triggers
  * @property {AutoGenerateWallsConfig} autoGenerateWalls
  * @property {any[]} regionBehaviors
@@ -151,6 +152,7 @@ export function createDefaultTerrainType(id = undefined) {
 		defaultHeight: null,
 		defaultElevation: null,
 		movementPenalty: 0,
+		noClimbingCost: false,
 		triggers: [],
 		autoGenerateWalls: createDefaultAutoGenerateWalls(),
 		regionBehaviors: [],
