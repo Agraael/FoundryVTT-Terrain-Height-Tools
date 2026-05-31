@@ -32,8 +32,8 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 	async _selectShape(shape) {
 		const { toDrawing, toRegion, toWalls, setWallHeightFlags, deleteAfter } = convertConfig$.value;
 
-		const terrainData = getTerrainType(shape.terrainTypeId);
-		if (!terrainData) return;
+		const terrainType = getTerrainType(shape.terrainTypeId);
+		if (!terrainType) return;
 
 		if (toDrawing) {
 			const { x1, y1, w, h } = shape.polygon.boundingBox;
@@ -51,18 +51,18 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 							shape.polygon.vertices[0].y - y1
 						]
 					},
-					fillAlpha: terrainData.fillOpacity,
-					fillColor: terrainData.fillColor,
-					fillType: terrainData.fillType,
-					texture: terrainData.fillTexture,
-					strokeAlpha: terrainData.lineOpacity,
-					strokeColor: terrainData.lineColor,
-					strokeWidth: terrainData.lineWidth,
-					text: getLabelText(shape, terrainData),
-					textAlpha: terrainData.textOpacity,
-					textColor: terrainData.textColor,
-					fontFamily: terrainData.font,
-					fontSize: terrainData.textSize
+					fillAlpha: terrainType.fillOpacity,
+					fillColor: terrainType.fillColor,
+					fillType: terrainType.fillType,
+					texture: terrainType.fillTexture,
+					strokeAlpha: terrainType.lineOpacity,
+					strokeColor: terrainType.lineColor,
+					strokeWidth: terrainType.lineWidth,
+					text: getLabelText(shape, terrainType),
+					textAlpha: terrainType.textOpacity,
+					textColor: terrainType.textColor,
+					fontFamily: terrainType.font,
+					fontSize: terrainType.textSize
 				},
 				...shape.holes.map(hole => {
 					const { x1, y1, w, h } = hole.boundingBox;
@@ -80,10 +80,10 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 							]
 						},
 						fillType: CONST.DRAWING_FILL_TYPES.NONE,
-						texture: terrainData.fillTexture,
-						strokeAlpha: terrainData.lineOpacity,
-						strokeColor: terrainData.lineColor,
-						strokeWidth: terrainData.lineWidth
+						texture: terrainType.fillTexture,
+						strokeAlpha: terrainType.lineOpacity,
+						strokeColor: terrainType.lineColor,
+						strokeWidth: terrainType.lineWidth
 					};
 				})
 			].filter(Boolean));
@@ -92,9 +92,9 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 		if (toRegion) {
 			await canvas.scene.createEmbeddedDocuments("Region", [
 				{
-					name: terrainData.name,
-					color: Color.from(terrainData.fillColor),
-					elevation: terrainData.usesHeight
+					name: terrainType.name,
+					color: Color.from(terrainType.fillColor),
+					elevation: terrainType.usesHeight
 						? { top: shape.top, bottom: shape.bottom }
 						: { top: null, bottom: null },
 					shapes: [
@@ -109,7 +109,8 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 							points: hole.vertices.flatMap(v => [v.x, v.y])
 						}))
 					],
-					visibility: CONST.REGION_VISIBILITY.ALWAYS
+					visibility: CONST.REGION_VISIBILITY.ALWAYS,
+					behaviors: terrainType.regionBehaviors
 				}
 			]);
 		}
