@@ -94,6 +94,13 @@ function initLibWrapper() {
 		libWrapper.WRAPPER
 	);
 
+	libWrapper.register(
+		moduleName,
+		"CONFIG.Token.layerClass.prototype._prepareKeyboardMovementUpdates",
+		autoTokenElevation.tokenLayerPrepareKeyboardMovementUpdatesWrapper,
+		libWrapper.WRAPPER
+	);
+
 	// Patches to allow clicking on a token to select it for the token line of sight
 	// Since players are not allowed to click on tokens they do not own (in which case `_onClickLeft` does not even get
 	// called) we also need to override the `can` method to allow players to click tokens they don't own when using the

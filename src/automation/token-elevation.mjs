@@ -27,6 +27,8 @@ const automaticElevationMovementTypes = ["walk", "crawl", "climb", "jump", "tele
 
 const thtTerrainTop = Symbol("thtTerrainTop");
 
+const thtElevationChanged = Symbol("thtElevationChanged");
+
 /**
  * Wrapper that handles automatic elevation change when the user is dragging the token within a scene.
  * This is not used in other circumstances such as when using the keyboard or undoing a previous move.
@@ -94,9 +96,35 @@ export function tokenGetShiftedPositionWrapper(wrapped, dx, dy, dz) {
 	const initialElevation = getTopMostTerrainUnderToken(this.document._source, { elevation, height: tokenZHeight });
 	const newElevation = getTopMostTerrainUnderToken({ x: position.x, y: position.y, width, height, shape }, { elevation, height: tokenZHeight });
 
-	position.elevation += toSceneUnits(newElevation - initialElevation);
+	const delta = newElevation - initialElevation;
+	position.elevation += toSceneUnits(delta);
+
+	// Adding an action property to the return position doesn't work as it gets overridden by getKeyboardMovementAction,
+	// which irritatingly doesn't accept any arguments. To get around this, we set a symbol on the waypoint, then
+	// override the token layer's _prepareKeyboardMovementUpdates to check the returned waypoints and if we see that
+	// symbol we change the movement there instead.
+	position[thtElevationChanged] = delta !== 0;
 
 	return position;
+}
+
+/**
+ * Wrapper for TokenLayer._prepareKeyboardMovementUpdates which handles updating the waypoint action type for keyboard
+ * movements since we cannot set the action in getShiftedPosition.
+ * @param {(...args: any[]) => [{ _id: string; }[], { movement: { [objectId: string]: { waypoints: [TokenCompleteMovementWaypoint]; method: "keyboard"; } } }]} wrapped
+ */
+export function tokenLayerPrepareKeyboardMovementUpdatesWrapper(wrapped, ...args) {
+	const updates = wrapped(...args);
+
+	if (!tokenElevationChangeInsertClimbWaypoints$.value) return updates;
+
+	for (const { _id: objectId } of updates[0]) {
+		const [waypoint] = updates[1].movement[objectId].waypoints;
+		if (waypoint[thtElevationChanged])
+			waypoint.action = "climb";
+	}
+
+	return updates;
 }
 
 /**
