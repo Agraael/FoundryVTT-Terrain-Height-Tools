@@ -1,10 +1,26 @@
 /** @import { TerrainShape } from "../geometry/terrain-shape.mjs" */
-import { tokenElevationChange$ } from "../config/settings.mjs";
+import { tokenElevationChange$, tokenElevationChangeInsertClimbWaypoints$ } from "../config/settings.mjs";
 import { moduleName, tokenFlags } from "../consts.mjs";
 import { heightMap } from "../geometry/height-map.mjs";
 import { getTerrainType } from "../stores/terrain-types.mjs";
 import { getSpacesUnderToken, toSceneUnits } from "../utils/grid-utils.mjs";
 import { getTokenHeight } from "../utils/token-utils.mjs";
+
+/**
+ * @typedef {Object} TokenCompleteMovementWaypoint
+ * @property {number} x The top-left x-coordinate in pixels (integer).
+ * @property {number} y The top-left y-coordinate in pixels (integer).
+ * @property {number} elevation The elevation in grid units.
+ * @property {number} width The width in grid spaces (positive).
+ * @property {number} height The height in grid spaces (positive).
+ * @property {TokenShapeType} shape The shape type (CONST.TOKEN_SHAPES).
+ * @property {string} action The movement action from the previous to this waypoint.
+ * @property {DataModel|null} terrain The terrain data from the previous to this waypoint.
+ * @property {boolean} snapped  Was this waypoint snapped to the grid?
+ * @property {boolean} explicit Was this waypoint explicitly placed by the user?
+ * @property {boolean} checkpoint Is this waypoint a checkpoint?
+ * @property {boolean} intermediate Is this waypoint intermediate?
+ */
 
 // TODO: make this configurable?
 const automaticElevationMovementTypes = ["walk", "crawl", "climb", "jump", "teleport", "blink"];
@@ -81,6 +97,66 @@ export function tokenGetShiftedPositionWrapper(wrapped, dx, dy, dz) {
 	position.elevation += toSceneUnits(newElevation - initialElevation);
 
 	return position;
+}
+
+/**
+ * Wrapper for TokenDocument#getCompleteMovementPath which adds additional climb waypoints when dragging tokens and the
+ * elevation changes.
+ * @param {(waypoints: any[]) => TokenCompleteMovementWaypoint[]} wrapped
+ * @param {any[]} waypoints
+ */
+export function tokenDocumentGetCompleteMovementPathWrapper(wrapped, waypoints) {
+	const movementPath = wrapped(waypoints);
+	if (movementPath.length <= 1) return movementPath;
+
+	// If the setting is disabled, do nothing
+	if (!tokenElevationChange$.value || !tokenElevationChangeInsertClimbWaypoints$.value) return movementPath;
+
+	// If the token has the ignore auto-elevation flag set, skip elevation adjustment
+	if (this.flags?.[moduleName]?.[tokenFlags.ignoreAutoElevation]) return movementPath;
+
+	const tokenZHeight = getTokenHeight(this);
+
+	// Top of the terrain under the token in the initial waypoint.
+	// We ignore any terrain that is is entirely above the token, i.e. if the token is in a gap beneath this terrain
+	// This needs to match the logic in the tokenGetDragWaypointPositionWrapper
+	let previousTerrainTop = getTopMostTerrainUnderToken(
+		movementPath[0],
+		{ terrainFilter: s => s.bottom <= movementPath[0].elevation + tokenZHeight }
+	);
+
+	for (let i = 1; i < movementPath.length; i++) {
+		if (!automaticElevationMovementTypes.includes(movementPath[i].action)) continue;
+
+		// Find the best suitable space for the token, keeping the same relative height above terrain.
+		// This needs to match the logic in the tokenGetDragWaypointPositionWrapper
+		const thisTerrainTop = getTopMostTerrainUnderToken(
+			movementPath[i],
+			{ gapSearch: {
+				currentTerrainTop: previousTerrainTop,
+				currentElevationAboveTerrain: movementPath[i].elevation - previousTerrainTop,
+				tokenZHeight
+			} }
+		);
+
+		// Update the elevation of this waypoint
+		movementPath[i].elevation = toSceneUnits(thisTerrainTop);
+
+		if (thisTerrainTop !== previousTerrainTop) {
+			Object.assign(movementPath[i - 1], {
+				intermediate: false
+			});
+			Object.assign(movementPath[i], {
+				action: "climb",
+				elevation: thisTerrainTop,
+				intermediate: false
+			});
+		}
+
+		previousTerrainTop = thisTerrainTop;
+	}
+
+	return movementPath;
 }
 
 /**

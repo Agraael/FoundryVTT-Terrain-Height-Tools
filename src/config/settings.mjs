@@ -11,6 +11,7 @@ export const showTerrainStackViewerOnTokenLayer$ = signal(false);
 export const terrainStackViewerDisplayMode$ = signal("auto");
 export const terrainHeightLayerVisibilityRadius$ = signal(0);
 export const tokenElevationChange$ = signal(false);
+export const tokenElevationChangeInsertClimbWaypoints$ = signal(false);
 export const showZonesAboveNonZones$ = signal(false);
 export const useFractionsForLabels$ = signal(true);
 export const terrainLayerAboveTilesDefault$ = signal(true);
@@ -181,6 +182,15 @@ export function registerSettings() {
 		config: true,
 		default: false
 	}, tokenElevationChange$);
+
+	registerSetting(settingNames.tokenElevationChangeInsertClimbWaypoints, {
+		name: "SETTINGS.TokenElevationChangeInsertClimbWaypoints.Name",
+		hint: "SETTINGS.TokenElevationChangeInsertClimbWaypoints.Hint",
+		scope: "world",
+		type: Boolean,
+		config: true,
+		default: false
+	}, tokenElevationChangeInsertClimbWaypoints$);
 
 	registerSetting(settingNames.showZonesAboveNonZones, {
 		name: "SETTINGS.ShowZonesAboveNonZones.Name",
