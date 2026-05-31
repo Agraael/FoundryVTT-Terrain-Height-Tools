@@ -23,7 +23,7 @@ export function registerKeybindings() {
 
 	registerKeybinding(keybindings.showTerrainStack, {
 		name: "KEYBINDINGS.ShowTerrainStackViewer",
-		editable: [{ key: "KeyQ" }]
+		editable: [{ key: "Semicolon" }]
 	});
 
 	registerKeybinding(keybindings.toggleTerrainHeightMapOnTokenLayer, {

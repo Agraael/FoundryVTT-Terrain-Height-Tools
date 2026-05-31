@@ -66,7 +66,7 @@ Another useful feature that was released with v0.4.0 is the _Terrain Viewer_. Th
 
 ![Terrain Viewer](./docs/img/terrain-viewer.webp)
 
-By default this is turned off unless you hold the keybinding to show it (default <kbd>Q</kbd>), but you can turn it on permanently if you wish.
+By default this is turned off unless you hold the keybinding to show it (default <kbd>;</kbd>), but you can turn it on permanently if you wish.
 
 ## See Also
 - [Settings & Keybinds Reference](./docs/settings-keybinds-reference.md)

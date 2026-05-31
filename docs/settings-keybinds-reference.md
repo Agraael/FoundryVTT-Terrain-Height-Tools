@@ -80,7 +80,7 @@ While you are using the Line of Sight Ruler tool, you can press the keybind to i
 - When you are dragging the ruler, pressing this will increase/decrease the elevation of the end point.
 
 ### Show Terrain Viewer
-_Defaults to_ <kbd>Q</kbd>.
+_Defaults to_ <kbd>;</kbd>.
 
 While holding this keybinding, the Terrain Viewer will be shown in the bottom right of the screen.
 
