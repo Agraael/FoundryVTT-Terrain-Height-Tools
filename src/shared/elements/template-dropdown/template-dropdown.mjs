@@ -19,10 +19,8 @@ export class TemplateDropdownElement extends AbstractDropdownElement {
 
 		// This weird syntax is to get around vscode-lit-plugin treating these as symbols and showing an error about incompatible type
 		// bindings. It seems like using the @type before the property name doesn't get picked up by the plugin for some reason.
-		/* eslint-disable @stylistic/js/no-extra-parens */
 		this.buttonTemplate = /** @type {any} */ (nothing);
 		this.dropdownTemplate = /** @type {any} */ (nothing);
-		/* eslint-enable @stylistic/js/no-extra-parens */
 
 		this.dropdownClasses = "";
 	}
