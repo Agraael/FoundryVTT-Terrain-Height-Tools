@@ -82,7 +82,10 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 	// Feels better to have one region per group of shapes, rather than one region per shape? Not sure if it will affect
 	// performance by any significant amount though?
 	const changedRegions = distinctBy(terrainShapes, s => s.terrainTypeId, s => s.top, s => s.bottom)
-		.map(({ terrainTypeId, top, bottom }) => ({ terrainTypeId, top, bottom }));
+		.map(({ terrainTypeId, top, bottom }) => {
+			const usesHeight = terrainTypeMap$.value.get(terrainTypeId)?.usesHeight;
+			return { terrainTypeId, top: usesHeight ? top : null, bottom: usesHeight ? bottom : null };
+		});
 
 	/** @type {Map<string, RegionDocument>} */
 	const existingRegionsLookup = new Map(getThtSceneRegions().map(r => [getMapKeyForRegion(r), r]));
