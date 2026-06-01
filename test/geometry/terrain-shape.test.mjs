@@ -14,9 +14,11 @@ describe("TerrainShape::calculateLineOfSight()", () => {
 		],
 		holes: [],
 		elevation: 2,
-		height: 2,
-		cells: []
+		height: 2
 	});
+
+	// Fake the terrainType lookup
+	Object.defineProperty(rectangle, "terrainType", { value: { usesHeight: true } });
 
 	const doughnut = new TerrainShape({
 		terrainTypeId: "a",
@@ -35,9 +37,11 @@ describe("TerrainShape::calculateLineOfSight()", () => {
 			]
 		],
 		elevation: 5,
-		height: 1,
-		cells: []
+		height: 1
 	});
+
+	// Fake the terrainType lookup
+	Object.defineProperty(doughnut, "terrainType", { value: { usesHeight: true } });
 
 	it("should produce no intersection when the ray does not pass through the shape in the XY plane", () => {
 		const intersections = rectangle.getIntersections({ x: 20, y: 51, h: 3 }, { x: 100, y: 80, h: 3 }, true);
