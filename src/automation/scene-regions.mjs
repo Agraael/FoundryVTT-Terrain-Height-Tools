@@ -65,13 +65,9 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 	// If cleaning up, do this first as this will remove duplicate scene regions that have been erroneously created with the same type/top/bottom
 	// Hopefully this should never happen, but it's here as a failsafe.
 	if (cleanup) {
-		const neededRegions = new Set([...allTerrainShapes$.value].map(s => getMapKey(s.terrainTypeId, s.top, s.bottom)));
+		const neededRegions = new Set([...allTerrainShapes$.value].map(getMapKeyForShape));
 		for (const region of getThtSceneRegions()) {
-			const regionKey = getMapKey(
-				region.flags[moduleName]?.[regionFlags.terrainTypeId],
-				region._source.elevation.top,
-				region._source.elevation.bottom
-			);
+			const regionKey = getMapKeyForRegion(region);
 
 			// Delete the regionKey from the neededRegions set so that if we encounter another region with the same type/top/bottom, we delete it
 			if (!neededRegions.delete(regionKey)) {
@@ -89,19 +85,9 @@ async function createOrUpdateRegions(terrainShapes, cleanup = false) {
 		.map(({ terrainTypeId, top, bottom }) => ({ terrainTypeId, top, bottom }));
 
 	/** @type {Map<string, RegionDocument>} */
-	const existingRegionsLookup = new Map(getThtSceneRegions().map(r => [
-		getMapKey(
-			r.flags[moduleName]?.[regionFlags.terrainTypeId],
-			r._source.elevation.top, // use ._source otherwise this is Infinity instead of null for boundless regions
-			r._source.elevation.bottom
-		),
-		r
-	]));
+	const existingRegionsLookup = new Map(getThtSceneRegions().map(r => [getMapKeyForRegion(r), r]));
 
-	const terrainShapesLookup = groupBy(allTerrainShapes$.value, s => {
-		const usesHeight = terrainTypeMap$.value.get(s.terrainTypeId)?.usesHeight;
-		return getMapKey(s.terrainTypeId, usesHeight ? s.top : null, usesHeight ? s.bottom : null);
-	});
+	const terrainShapesLookup = groupBy(allTerrainShapes$.value, getMapKeyForShape);
 
 	for (const { terrainTypeId, top, bottom } of changedRegions) {
 		const mapKey = getMapKey(terrainTypeId, top, bottom);
@@ -206,11 +192,27 @@ function getThtSceneRegions() {
 	return canvas.scene.regions.filter(r => r.flags[moduleName]?.[regionFlags.terrainTypeId]);
 }
 
-/**
- * @param {string} terrainTypeId
- * @param {number} top
- * @param {number} bottom
- */
+/** @param {Region} region */
+function getMapKeyForRegion(region) {
+	// use ._source otherwise this is Infinity instead of null for boundless regions
+	return getMapKey(
+		region.flags[moduleName]?.[regionFlags.terrainTypeId],
+		region._source.elevation.top,
+		region._source.elevation.bottom
+	);
+}
+
+/** @param {TerrainShape} shape */
+function getMapKeyForShape(shape) {
+	// Regions have a null top/bottom if they are infinite, so mimic that behavior
+	const usesHeight = shape.terrainType?.usesHeight;
+	return getMapKey(
+		shape.terrainTypeId,
+		usesHeight ? shape.top : null,
+		usesHeight ? shape.bottom : null
+	);
+}
+
 function getMapKey(terrainTypeId, top, bottom) {
 	return `${terrainTypeId}|${top}|${bottom}`;
 }

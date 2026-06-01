@@ -102,19 +102,19 @@ export class TerrainShape {
 	}
 
 	get height() {
-		return this.terrainType?.usesHeight ? this.#height : null;
+		return this.#height;
 	}
 
 	get elevation() {
-		return this.terrainType?.usesHeight ? this.#elevation : null;
+		return this.#elevation;
 	}
 
 	get top() {
-		return this.terrainType?.usesHeight ? this.#elevation + this.#height : null;
+		return this.#elevation + this.#height;
 	}
 
 	get bottom() {
-		return this.terrainType?.usesHeight ? this.#elevation : null;
+		return this.#elevation;
 	}
 
 	get visible() {
