@@ -2,6 +2,9 @@
 
 [![Latest module version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2FAgraael%2FFoundryVTT-Terrain-Height-Tools%2Freleases%2Flatest%2Fdownload%2Fmodule.json&query=%24.version&prefix=v&style=for-the-badge&label=module%20version)](https://github.com/Agraael/FoundryVTT-Terrain-Height-Tools/releases/latest)
 ![Latest Foundry version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2FAgraael%2FFoundryVTT-Terrain-Height-Tools%2Freleases%2Flatest%2Fdownload%2Fmodule.json&query=%24.compatibility.verified&style=for-the-badge&label=foundry%20version&color=fe6a1f)
+<br/>
+[![GitHub downloads (total)](https://img.shields.io/github/downloads/Agraael/FoundryVTT-Terrain-Height-Tools/release.zip?style=for-the-badge&label=downloads%20(total))](https://github.com/Agraael/FoundryVTT-Terrain-Height-Tools/releases/latest)
+[![GitHub downloads (latest version)](https://img.shields.io/github/downloads/Agraael/FoundryVTT-Terrain-Height-Tools/latest/release.zip?style=for-the-badge&label=downloads%20(latest))](https://github.com/Agraael/FoundryVTT-Terrain-Height-Tools/releases/latest)
 
 Fork of [Wibble199's Terrain Height Tools](https://github.com/Wibble199/FoundryVTT-Terrain-Height-Tools). For core features (height painting, line of sight ruler, terrain viewer) see the upstream readme. This page only covers what the fork adds.
 
