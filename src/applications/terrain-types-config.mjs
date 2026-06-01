@@ -600,19 +600,27 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		return html`
 			<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.TabHint")}</p>
 			${repeat(triggers, t => t.id, (trigger, triggerIndex) => html`
-				<div class="tht-trigger-row" data-trigger-id=${trigger.id}>
+				<details class="tht-trigger-row" data-trigger-id=${trigger.id}>
+					<summary class="tht-trigger-summary">
+						<span class="tht-trigger-summary-label">
+							<span>${l(triggerEventModes[trigger.mode] ?? "")}</span>
+							<span class="tht-trigger-summary-sep">·</span>
+							<span>${l(triggerActionTypes[trigger.actionType] ?? "")}</span>
+						</span>
+						<button
+							type="button"
+							class="tht-trigger-delete"
+							title=${l("Delete")}
+							@click=${e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.dispatchEvent(new CustomEvent("tht-trigger-delete", { bubbles: true, detail: { terrainTypeId: terrainType.id, triggerId: trigger.id } })); }}
+						><i class="fas fa-trash"></i></button>
+					</summary>
+
 					<input type="hidden" name="${index}.triggers.${triggerIndex}.id" value=${trigger.id}>
 
 					<div class="form-group">
 						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Enabled")}</label>
 						<div class="form-fields">
 							<input type="checkbox" name="${index}.triggers.${triggerIndex}.enabled" .checked=${trigger.enabled}>
-							<button
-								type="button"
-								class="tht-trigger-delete"
-								title=${l("Delete")}
-								@click=${e => e.currentTarget.dispatchEvent(new CustomEvent("tht-trigger-delete", { bubbles: true, detail: { terrainTypeId: terrainType.id, triggerId: trigger.id } }))}
-							><i class="fas fa-trash"></i></button>
 						</div>
 					</div>
 
@@ -719,9 +727,7 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 						</div>
 						<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.Action.CodeHint")}</p>
 					</div>
-
-					<hr/>
-				</div>
+				</details>
 			`)}
 
 			<button
