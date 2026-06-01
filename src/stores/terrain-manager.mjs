@@ -128,17 +128,6 @@ export class TerrainProvider {
 			if (canvas.scene && scene.id === canvas.scene.id)
 				this._updateScene(scene, delta, options, userId);
 		});
-
-		this.terrainShapes$.subscribe({
-			add: shapes => {
-				for (const shape of shapes)
-					this.quadtree.insert({ r: shape.polygon.boundingRect, t: shape });
-			},
-			remove: shapes => {
-				for (const shape of shapes)
-					this.quadtree.remove(shape);
-			}
-		});
 	}
 
 	/**
@@ -150,6 +139,9 @@ export class TerrainProvider {
 		shapes = shapes?.flat?.(1);
 		if (shapes?.some?.(shape => !(shape instanceof TerrainShape)) !== false)
 			throw new Error("Expect shapes parameters to be of type TerrainShape");
+
+		for (const shape of shapes)
+			this.quadtree.insert({ r: shape.polygon.boundingRect, t: shape });
 
 		return this.terrainShapes$.add(...shapes);
 	}
@@ -169,6 +161,13 @@ export class TerrainProvider {
 		const existingShapes = new Map([...this.terrainShapes$.value].map(s => [s.toKeyString(), s]));
 		shapes = shapes.map(shape => existingShapes.get(shape.toKeyString()) ?? shape);
 
+		const oldSet = new Set(this.terrainShapes$.value);
+		const newSet = new Set(shapes);
+		for (const shape of oldSet)
+			if (!newSet.has(shape)) this.quadtree.remove(shape);
+		for (const shape of newSet)
+			if (!oldSet.has(shape)) this.quadtree.insert({ r: shape.polygon.boundingRect, t: shape });
+
 		this.terrainShapes$.value = shapes;
 	}
 
@@ -182,6 +181,9 @@ export class TerrainProvider {
 		if (shapes?.some?.(shape => !(shape instanceof TerrainShape)) !== false)
 			throw new Error("Expect shapes parameters to be of type TerrainShape");
 
+		for (const shape of shapes)
+			this.quadtree.remove(shape);
+
 		return this.terrainShapes$.delete(...shapes);
 	}
 
@@ -189,6 +191,7 @@ export class TerrainProvider {
 	 * Removes all shapes from this provider.
 	 */
 	deleteAllShapes() {
+		this.quadtree.clear();
 		this.terrainShapes$.clear();
 	}
 

@@ -565,10 +565,11 @@ export class HeightMap extends TerrainProvider {
 				.flatMap(({ polygon: { boundingBox: { x1, y1, w, h } } }) => [...this.getShapes(
 					new PIXI.Rectangle(x1 - 1, y1 - 1, w + 2, h + 2),
 					{
-						collisionTest: ({ t: shape }) =>
-							shape.terrainTypeId === terrainTypeId &&
-							shape.top === top &&
-							shape.bottom === bottom
+						collisionTest: ({ t: shape }) => {
+							if (shape.terrainTypeId !== terrainTypeId) return false;
+							if (!shape.terrainType?.usesHeight) return true;
+							return shape.top === top && shape.bottom === bottom;
+						}
 					}
 				)]));
 
@@ -659,18 +660,30 @@ export class HeightMap extends TerrainProvider {
 	static #shapesFromGeoJson(result) {
 		if (result.length === 0) return [];
 
+		const dedupeRing = ring => {
+			const cleaned = [];
+			for (const pt of ring) {
+				const prev = cleaned[cleaned.length - 1];
+				if (!prev || prev[0] !== pt[0] || prev[1] !== pt[1]) cleaned.push(pt);
+			}
+			if (cleaned.length > 1) {
+				const first = cleaned[0], last = cleaned[cleaned.length - 1];
+				if (first[0] === last[0] && first[1] === last[1]) cleaned.pop();
+			}
+			return cleaned;
+		};
+
+		const buildPolygon = ring => {
+			try { return new Polygon(dedupeRing(ring)); }
+			catch (e) { console.warn("THT eraser: skipped degenerate polygon", e); return null; }
+		};
+
 		const isMultiPolygon = Array.isArray(result[0][0]);
-		if (isMultiPolygon) {
-			return result.map(rings => ({
-				polygon: new Polygon(rings[0]),
-				holes: rings.slice(1).map(ring => new Polygon(ring))
-			}));
-		} else {
-			return [{
-				polygon: new Polygon(result[0]),
-				holes: result.slice(1).map(ring => new Polygon(ring))
-			}];
-		}
+		const out = isMultiPolygon
+			? result.map(rings => ({ polygon: buildPolygon(rings[0]), holes: rings.slice(1).map(buildPolygon).filter(Boolean) }))
+			: [{ polygon: buildPolygon(result[0]), holes: result.slice(1).map(buildPolygon).filter(Boolean) }];
+
+		return out.filter(p => p.polygon !== null);
 	}
 }
 
