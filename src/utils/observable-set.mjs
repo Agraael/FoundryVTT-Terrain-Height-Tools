@@ -23,12 +23,6 @@ export class ObservableSet {
 	#observers = new Set();
 
 	/**
-	 * If any changes are pending notification, they are stored here. If this is null, no notification is pending.
-	 * @type {{ newValues: Set<TElement>; removedValues: Set<TElement>; } | null}
-	 */
-	#pendingNotifyChanges = null;
-
-	/**
 	 * @param {Iterable<TElement>} [initialValues]
 	 */
 	constructor(initialValues) {
@@ -149,47 +143,20 @@ export class ObservableSet {
 
 	/** @param {{ newValues?: TElement[]; removedValues?: TElement[]; }} changes */
 	#notifySubscribers({ newValues = [], removedValues = [] } = {}) {
-		// If a notification is already pending, merge the pending values with the ones from the call
-		if (this.#pendingNotifyChanges) {
-			for (const newValue of newValues) {
-				// If a new value was marked as a removed value previously (i.e. added and then removed), then it is neither new nor removed
-				if (!this.#pendingNotifyChanges.removedValues.delete(newValue))
-					this.#pendingNotifyChanges.newValues.add(newValue);
+		if (newValues.length === 0 && removedValues.length === 0) return;
+
+		for (const observer of this.#observers) {
+			try {
+				observer.change?.(this.#innerSet.peek().values(), newValues, removedValues);
+
+				if (removedValues.length > 0)
+					observer.remove?.(removedValues);
+
+				if (newValues.length > 0)
+					observer.add?.(newValues);
+			} catch (ex) {
+				error("Error thrown in ObservableSet observer callback.", ex);
 			}
-
-			for (const removedValue of removedValues) {
-				// Likewise, if a removed value was marked as a added value previously (i.e. removed added and then added), then it is
-				// neither new nor removed
-				if (!this.#pendingNotifyChanges.newValues.delete(removedValue))
-					this.#pendingNotifyChanges.removedValues.add(removedValue);
-			}
-
-		} else {
-			// If no notification is currently pending, start a microtask to notify
-			this.#pendingNotifyChanges = { newValues: new Set(newValues), removedValues: new Set(removedValues) };
-
-			Promise.resolve().then(() => {
-				const newValuesArr = Object.freeze([...this.#pendingNotifyChanges?.newValues ?? []]);
-				const removedValuesArr = Object.freeze([...this.#pendingNotifyChanges?.removedValues ?? []]);
-				this.#pendingNotifyChanges = null;
-
-				// If no changes, don't notify
-				if (newValuesArr.length === 0 && removedValuesArr.length === 0) return;
-
-				for (const observer of this.#observers) {
-					try {
-						observer.change?.(this.#innerSet.peek().values(), newValuesArr, removedValuesArr);
-
-						if (removedValuesArr.length > 0)
-							observer.remove?.(removedValuesArr);
-
-						if (newValuesArr.length > 0)
-							observer.add?.(newValuesArr);
-					} catch (ex) {
-						error("Error thrown in ObservableSet observer callback.", ex);
-					}
-				}
-			});
 		}
 	}
 }
