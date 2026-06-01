@@ -29,6 +29,9 @@ export class HeightMap extends TerrainProvider {
 
 	_canvasReady() {
 		this._reloadData();
+
+		// Clear history to prevent history from other scenes coming through
+		this.#history = [];
 	}
 
 	/** @override */
