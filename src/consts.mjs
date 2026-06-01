@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/js/no-extra-parens */
 export const moduleName = "terrain-height-tools";
 
 export const socketName = `module.${moduleName}`;

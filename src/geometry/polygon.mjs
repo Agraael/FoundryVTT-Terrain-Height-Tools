@@ -1,6 +1,6 @@
 /** @import { PointLike } from "./point.mjs" */
 import { geometryTolerance } from "../consts.mjs";
-import { distinctBy } from "../utils/array-utils.mjs";
+import { chunk, distinctBy } from "../utils/array-utils.mjs";
 import { LineSegment } from "./line-segment.mjs";
 import { Point } from "./point.mjs";
 

@@ -29,6 +29,9 @@ export class HeightMap extends TerrainProvider {
 
 	_canvasReady() {
 		this._reloadData();
+
+		// Clear history to prevent history from other scenes coming through
+		this.#history = [];
 	}
 
 	/** @override */
@@ -565,11 +568,10 @@ export class HeightMap extends TerrainProvider {
 				.flatMap(({ polygon: { boundingBox: { x1, y1, w, h } } }) => [...this.getShapes(
 					new PIXI.Rectangle(x1 - 1, y1 - 1, w + 2, h + 2),
 					{
-						collisionTest: ({ t: shape }) => {
-							if (shape.terrainTypeId !== terrainTypeId) return false;
-							if (!shape.terrainType?.usesHeight) return true;
-							return shape.top === top && shape.bottom === bottom;
-						}
+						collisionTest: ({ t: shape }) =>
+							shape.terrainTypeId === terrainTypeId &&
+							shape.top === top &&
+							shape.bottom === bottom
 					}
 				)]));
 

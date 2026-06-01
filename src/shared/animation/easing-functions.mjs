@@ -1,5 +1,4 @@
 /** @enum {keyof typeof EASING_FUNCTIONS} */
-// eslint-disable-next-line @stylistic/js/no-extra-parens
 export const EASING_FUNCTIONS = /** @type {const} */ ({
 	linear: "EasingLinear",
 	easeInCubic: "EasingEaseIn",
