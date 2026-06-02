@@ -162,8 +162,6 @@
 		"MoveToBottom": "Move to bottom",
 		"MoveToTop": "Move to top",
 		"MoveUp": "Move up (affects palette list only)",
-		"MovementPenalty.Name": "Movement Penalty",
-		"MovementPenalty.Hint": "Additional movement cost when moving through this terrain (in grid units). 0 = no penalty.",
 		"NoBehaviorsConfigured": "No behaviors configured",
 		"NoTerrainTypesWarn": "No terrain types configured. Click to configure.",
 		"NotifyShapeConversionComplete": "Successfully converted clicked shape",

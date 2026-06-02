@@ -11,7 +11,6 @@ Fork of [Wibble199's Terrain Height Tools](https://github.com/Wibble199/FoundryV
 ## What this fork adds
 
 - **Terrain Triggers**: per-terrain actions on enter/leave/move. Macro, JS, or status effect. See [Triggers](#triggers).
-- **Movement Penalty**: terrain cost field read by Lancer Automations' ruler.
 - **Extra API**: token-in-shape and trigger-match helpers.
 
 ---
@@ -34,15 +33,9 @@ https://github.com/Agraael/FoundryVTT-Terrain-Height-Tools/releases/latest/downl
 
 | Module | What it adds |
 |--------|--------------|
-| [Lancer Automations](https://github.com/Agraael/lancer-automations) | Trigger code can call Lancer flows like `triggerDangerousZoneFlow`, and its ruler reads each terrain's **Movement Penalty** for live movement cost |
+| [Lancer Automations](https://github.com/Agraael/lancer-automations) | Trigger code can call Lancer flows like `triggerDangerousZoneFlow` |
 | [Token Factions](https://github.com/Agraael/foundryvtt-token-factions) | Lets triggers target a specific team instead of disposition |
 | [_CodeMirror](https://github.com/League-of-Foundry-Developers/codemirror-lib) | Syntax highlighting in the inline JS trigger editor |
-
----
-
-## Movement Penalty
-
-Every terrain type has a **Movement Penalty** field (Terrain Types > Other). [Lancer Automations](https://github.com/Agraael/lancer-automations) reads it and adds the cost to its ruler when a token drags through a matching shape. Difficult Terrain usually wants 1.
 
 ---
 

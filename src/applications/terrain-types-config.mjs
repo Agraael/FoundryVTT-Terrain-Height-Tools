@@ -888,14 +888,6 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		</div>
 
 		<div class="form-group">
-			<label>Movement Penalty (Lancer Automations)</label>
-			<div class="form-fields">
-				<input type="number" name="${index}.movementPenalty" value=${terrainType.movementPenalty} min="0" step="1" ?disabled=${!game.modules.get("lancer-automations")?.active}>
-			</div>
-			<p class="hint">Extra movement cost added by Lancer Automations' ruler when a token enters this terrain. Requires the Lancer Automations module.</p>
-		</div>
-
-		<div class="form-group">
 			<label for="terrainType${index}_noClimbingCost">No Climbing Cost (Lancer Automations)</label>
 			<div class="form-fields">
 				<input id="terrainType${index}_noClimbingCost" type="checkbox" name="${index}.noClimbingCost" .checked=${terrainType.noClimbingCost} ?disabled=${!game.modules.get("lancer-automations")?.active}>
@@ -1331,8 +1323,6 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		for (const terrainType of terrainTypes) {
 			terrainType.usesHeight = !terrainType.isZone;
 			delete terrainType.isZone;
-
-			terrainType.movementPenalty = Math.max(0, Number(terrainType.movementPenalty) || 0);
 
 			// expandObject keys triggers as { "0": {...} }; flatten back to an array.
 			if (terrainType.triggers && !Array.isArray(terrainType.triggers)) {
