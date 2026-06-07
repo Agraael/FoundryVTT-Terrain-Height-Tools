@@ -158,6 +158,32 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			.filter(({ terrainType }) => !terrainType.usesHeight)
 			.sort((a, b) => a.terrainType.name.localeCompare(b.terrainType.name, undefined, { sensitivity: "accent" }));
 
+		// Gated templatemacro templates have a real elevation band; render them in the proportional/
+		// vertical-ruler block alongside terrain shapes instead of the flat-text fallback.
+		const flatTemplates = templates.filter(t => !t.gated);
+		for (const t of templates.filter(t => t.gated)) {
+			nonZoneShapes.push({
+				shape: { top: t.top, elevation: t.base, bottom: t.base, height: t.range },
+				terrainType: {
+					name: t.label,
+					usesHeight: true,
+					lineType: LINE_TYPES.SOLID,
+					lineWidth: 4,
+					lineColor: t.borderColor,
+					lineOpacity: t.borderOpacity,
+					lineColorAnimation: null,
+					fillType: 1,
+					fillColor: t.fillColor,
+					fillOpacity: t.fillOpacity,
+					fillColorAnimation: null,
+					textColor: "#ffffff",
+					textColorAnimation: null,
+					triggers: t.hasTrigger ? [{ enabled: true }] : []
+				}
+			});
+		}
+		nonZoneShapes.sort((a, b) => b.shape.elevation - a.shape.elevation);
+
 		const highestElevation = nonZoneShapes.length
 			? Math.max.apply(null, nonZoneShapes.map(({ shape }) => shape.top))
 			: 0;
@@ -168,11 +194,11 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			: configuredDisplayMode === "proportional";
 
 		return html`
-			${when(shapes.length > 0, () => html`
-				<!-- Non-zone shapes -->
-				${isProportionalDisplayMode
+			${when(nonZoneShapes.length > 0 || zoneShapes.length > 0, () => html`
+				<!-- Non-zone shapes (terrain with height + gated templatemacro templates) -->
+				${nonZoneShapes.length > 0 ? (isProportionalDisplayMode
 					? this.#renderProportionalDisplay(nonZoneShapes, highestElevation)
-					: this.#renderCompactDisplay(nonZoneShapes)}
+					: this.#renderCompactDisplay(nonZoneShapes)) : nothing}
 
 				<!-- Separator -->
 				${when(nonZoneShapes.length && zoneShapes.length, () => html`<hr>`)}
@@ -185,11 +211,11 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 				`)}
 			`)}
 
-			<!-- Separator between terrain and templatemacro zones -->
-			${when(shapes.length > 0 && templates.length > 0, () => html`<hr>`)}
+			<!-- Separator between terrain and non-gated templatemacro zones -->
+			${when((shapes.length > 0 || nonZoneShapes.length > 0) && flatTemplates.length > 0, () => html`<hr>`)}
 
-			<!-- templatemacro zones -->
-			${templates.length > 0 ? this.#renderTemplates(templates) : nothing}
+			<!-- Non-gated templatemacro zones (gated ones are in the proportional display above) -->
+			${flatTemplates.length > 0 ? this.#renderTemplates(flatTemplates) : nothing}
 		`;
 	}
 

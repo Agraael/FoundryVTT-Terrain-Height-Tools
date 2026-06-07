@@ -40,6 +40,9 @@ function init() {
 
 	Hooks.on("getSceneControlButtons", registerSceneControls);
 	Hooks.on("activateSceneControls", updateActiveControlTool);
+	Hooks.on("canvasReady", () => {
+		if (ui.controls?.control) updateActiveControlTool(ui.controls);
+	});
 	Hooks.on("renderSceneConfig", addAboveTilesToSceneConfig);
 	Hooks.on("renderTokenConfig", addIgnoreAutoElevationToTokenConfig);
 
