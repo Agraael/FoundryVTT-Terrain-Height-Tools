@@ -27,16 +27,31 @@ Here are some of the important controls and configuration options you need to kn
 	4. Delete
 3. This is the name of the terrain. This is how it will appear to you in the list when you are painting terrain, and how it will appear to players in the [Terrain Viewer](../readme.md#terrain-viewer); But NOT how it will appear on the scene canvas.
 4. Use these tabs to switch between different configuration options.
-5. The controls in this area will change depending on the selected tab. This preview is showing the "_Lines_" settings.
-
-- On the "_Text_" tab, there is a "_Label Format_" setting. This is where you will specify what the label will be when the terrain is drawn to the scene. You can use placeholders which will get replaced with metadata from the terrain. For example, if you set the label to be `%e% + H%h%`, then when this terrain type is painted with an elevation of 2 and a height of 3, the label would be `2 + H3`.
-	- `%h%` will be replaced with the height of the terrain (how big it is vertically)
-	- `%e%` will be replaced with the elevation of the terrain (how high above the ground it is)
-	- `%t%` will be replaced with the elevation of the top of the terrain (height + elevation)
-- There is also a "_Elevated Label Format_" option, which is the same as above but is used instead when the terrain is at a non-zero elevation. If left blank, the normal label format will always be used. For example, you might create a type which has the label format `H%h%` and an elevated format of `%e%+H%h%` - meaning that the elevation would only show when the terrain is elevated.
+5. The controls in this area will change depending on the selected tab.
 
 > [!TIP]
-> THT comes with a diagonal line texture for filling shapes. It can be found at `modules/terrain-height-tools/textures/hatching.png`.
+> THT comes with a numerous texture for filling shapes. They can be found in the `modules/terrain-height-tools/textures` folder.
+
+#### Label
+
+On the "_Text_" tab, there is a "_Label Format_" setting. This is where you will specify what the label will be when the terrain is drawn to the scene.
+
+You can use placeholders which will get replaced with metadata from the terrain. For example, if you set the label to be `%e% + H%h%`, then when this terrain type is painted with an elevation of 2 and a height of 3, the label would be `2 + H3`.
+- `%h%` will be replaced with the height of the terrain (how big it is vertically)
+- `%e%` will be replaced with the elevation of the terrain (how high above the ground it is)
+- `%t%` will be replaced with the elevation of the top of the terrain (height + elevation)
+
+There is also a "_Elevated Label Format_" option, which is the same as above but is used instead when the terrain is at a non-zero elevation. If left blank, the normal label format will always be used. For example, you might create a type which has the label format `H%h%` and an elevated format of `%e%+H%h%` - meaning that the elevation would only show when the terrain is elevated.
+
+
+#### Behaviors
+
+Region behaviors can be added to the terrain type. Behind the scenes, THT will create regions for the shapes and will attach these behaviors to these regions. For the most part, they work in the same way.
+
+> [!IMPORTANT]
+> One thing to bear in mind though is that any behaviors that have some form of state/"memory" will likely not work as expected due to THT often updating/recreating the regions. For example, behaviors that can have a "once" only option may seemingly trigger the same action a second time after the map has changed.
+
+Things that work well though, are behaviors such as the "modify movement cost" behavior for simulating difficult terrain, or having a macro that runs to trigger damage or similar. [Here is an example script for a 'Dangerous Terrain' terrain type for the Lancer system](./lancer-examples.md#dangerous-terrain).
 
 ---
 
