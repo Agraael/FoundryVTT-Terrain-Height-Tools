@@ -266,7 +266,7 @@
 				"MacroId": "Macro UUID or ID",
 				"CodeHint": "Available scope: token, shape, terrainType, trigger, options, api",
 				"EffectId": "Status Effect",
-				"EffectIdHint": "Effect is added on Enter and removed on Leave (per the trigger event mode).",
+				"EffectIdHint": "Applied on Enter, Move Inside, and Turn triggers. Removed only on Leave triggers.",
 				"EffectOverlay": "Show as Overlay"
 			}
 		},

@@ -26,6 +26,19 @@ export function isTokenInsideShape(tokenDoc, shape, rule, position) {
 			break;
 		}
 	}
+	if (!polyHit) {
+		const tht = globalThis.terrainHeightTools;
+		if (tht?.getCell) {
+			for (const space of getSpacesUnderToken(x, y, width, height, gridType, gridSize, hexagonalShape)) {
+				const o = canvas.grid.getOffset(space);
+				const cellShapes = tht.getCell(o.j, o.i) ?? [];
+				if (cellShapes.some(s => s === shape || s.terrainTypeId === shape.terrainTypeId)) {
+					polyHit = true;
+					break;
+				}
+			}
+		}
+	}
 	if (!polyHit) return false;
 
 	const terrainType = getTerrainType(shape.terrainTypeId);

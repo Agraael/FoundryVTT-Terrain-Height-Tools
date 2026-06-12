@@ -4,7 +4,7 @@ import { enterLeaveTerrainHook } from "../consts.mjs";
 import { getContainingTriggerMatches } from "./terrain-containment.mjs";
 import { isActiveGm, passesTargetFilter, runTriggerAction } from "./trigger-action.mjs";
 
-/** @type {Map<string, ReturnType<typeof getContainingTriggerMatches>>} */
+/** @type {Map<string, { matches: ReturnType<typeof getContainingTriggerMatches>, position: { x: number, y: number, elevation: number } }>} */
 const preMatchesByTokenId = new Map();
 
 function matchKey({ shape, trigger }) {
@@ -15,6 +15,50 @@ function indexByKey(matches) {
 	const map = new Map();
 	for (const m of matches) map.set(matchKey(m), m);
 	return map;
+}
+
+/** Walk the line pre→post as a series of token top-left positions, one per cell visited. */
+function getPathCells(tokenDoc, prePos, postPos) {
+	const grid = canvas.grid;
+	if (!grid?.getDirectPath || !grid?.getCenterPoint) return [prePos, postPos];
+	const gridSize = grid.size;
+	const w = (tokenDoc.width ?? 1) * gridSize;
+	const h = (tokenDoc.height ?? 1) * gridSize;
+	const preCenter = { x: prePos.x + w / 2, y: prePos.y + h / 2 };
+	const postCenter = { x: postPos.x + w / 2, y: postPos.y + h / 2 };
+	let offsets;
+	try {
+		offsets = grid.getDirectPath([preCenter, postCenter]) ?? [];
+	} catch {
+		return [prePos, postPos];
+	}
+	return offsets.map(off => {
+		const c = grid.getCenterPoint(off);
+		return { x: c.x - w / 2, y: c.y - h / 2 };
+	});
+}
+
+/** Zones contained at some intermediate path step but in neither pre nor post: traversed in one move. */
+function getTraversedMatches(tokenDoc, prePos, postPos, preIdx, postIdx) {
+	const cells = getPathCells(tokenDoc, prePos, postPos);
+	if (cells.length <= 2) return [];
+	const found = new Map();
+	const elevStart = prePos.elevation ?? 0;
+	const elevEnd = postPos.elevation ?? 0;
+	const last = cells.length - 1;
+	for (let i = 1; i < last; i++) {
+		const t = i / last;
+		const elevation = elevStart + (elevEnd - elevStart) * t;
+		const pos = { x: cells[i].x, y: cells[i].y, elevation };
+		const matches = getContainingTriggerMatches(tokenDoc, pos);
+		for (const m of matches) {
+			const k = matchKey(m);
+			if (preIdx.has(k) || postIdx.has(k)) continue;
+			if (found.has(k)) continue;
+			found.set(k, m);
+		}
+	}
+	return [...found.values()];
 }
 
 function selectTriggers(tokenDoc, matches, modes) {
@@ -51,24 +95,29 @@ export function handlePreUpdateToken(tokenDoc, change) {
 		preMatchesByTokenId.delete(tokenDoc.id);
 		return;
 	}
-	preMatchesByTokenId.set(tokenDoc.id, getContainingTriggerMatches(tokenDoc));
+	preMatchesByTokenId.set(tokenDoc.id, {
+		matches: getContainingTriggerMatches(tokenDoc),
+		position: { x: tokenDoc.x, y: tokenDoc.y, elevation: tokenDoc.elevation }
+	});
 }
 
 export async function handleUpdateToken(tokenDoc, change) {
 	const moved = "x" in change || "y" in change || "elevation" in change;
 	if (!moved) return;
 
-	const preMatches = preMatchesByTokenId.get(tokenDoc.id);
+	const preData = preMatchesByTokenId.get(tokenDoc.id);
 	preMatchesByTokenId.delete(tokenDoc.id);
-	if (!preMatches) return;
+	const prePos = preData?.position ?? { x: tokenDoc.x, y: tokenDoc.y, elevation: tokenDoc.elevation };
+	const preMatches = preData?.matches ?? getContainingTriggerMatches(tokenDoc, prePos);
 
 	// tokenDoc x/y can still reflect the pre-update position when this hook fires on hex grids,
 	// so feed the new coords from the change diff directly.
-	const postMatches = getContainingTriggerMatches(tokenDoc, {
+	const postPos = {
 		x: change.x ?? tokenDoc.x,
 		y: change.y ?? tokenDoc.y,
 		elevation: change.elevation ?? tokenDoc.elevation
-	});
+	};
+	const postMatches = getContainingTriggerMatches(tokenDoc, postPos);
 
 	const preIdx = indexByKey(preMatches);
 	const postIdx = indexByKey(postMatches);
@@ -83,11 +132,18 @@ export async function handleUpdateToken(tokenDoc, change) {
 		if (!postIdx.has(k)) left.push(m);
 	}
 
+	// Zones traversed during this move (in neither pre nor post but touched in between).
+	const traversed = getTraversedMatches(tokenDoc, prePos, postPos, preIdx, postIdx);
+
 	const enterMatches = selectTriggers(tokenDoc, entered, ["ENTER", "ENTER_LEAVE"]);
 	const leaveMatches = selectTriggers(tokenDoc, left, ["LEAVE", "ENTER_LEAVE"]);
 	const moveMatches = selectTriggers(tokenDoc, stayed, ["MOVE_INSIDE"]);
+	const traversedEnter = selectTriggers(tokenDoc, traversed, ["ENTER", "ENTER_LEAVE"]);
+	const traversedLeave = selectTriggers(tokenDoc, traversed, ["LEAVE", "ENTER_LEAVE"]);
 
 	await dispatchMatches(tokenDoc, enterMatches, { hasEntered: true, isPreview: false, reason: "move" });
+	await dispatchMatches(tokenDoc, traversedEnter, { hasEntered: true, isPreview: false, reason: "traversal" });
+	await dispatchMatches(tokenDoc, traversedLeave, { hasEntered: false, isPreview: false, reason: "traversal" });
 	await dispatchMatches(tokenDoc, leaveMatches, { hasEntered: false, isPreview: false, reason: "move" });
 	await dispatchMatches(tokenDoc, moveMatches, { hasEntered: null, isPreview: false, reason: "move-inside" });
 }
