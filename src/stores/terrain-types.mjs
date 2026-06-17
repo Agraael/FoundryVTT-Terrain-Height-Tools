@@ -10,6 +10,8 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {boolean} enabled
  * @property {keyof typeof import("../consts.mjs").triggerEventModes} mode
  * @property {keyof typeof import("../consts.mjs").triggerElevationRules} elevationRule
+ * @property {number} margin
+ * @property {boolean} partiallyInside
  * @property {keyof typeof import("../consts.mjs").triggerTargetTokens} targetTokens
  * @property {keyof typeof import("../consts.mjs").triggerActionTypes} actionType
  * @property {string} actionMacroId
@@ -179,6 +181,8 @@ export function createDefaultTrigger() {
 		enabled: true,
 		mode: "ENTER",
 		elevationRule: "INSIDE_VOLUME_INCLUSIVE",
+		margin: 0.5,
+		partiallyInside: true,
 		targetTokens: "ALL",
 		actionType: "none",
 		actionMacroId: "",

@@ -3,6 +3,7 @@
 import { getShapesByBounds } from "../stores/terrain-manager.mjs";
 import { getTerrainType, terrainTypes$ } from "../stores/terrain-types.mjs";
 import { fromSceneUnits, getSpacesUnderToken } from "../utils/grid-utils.mjs";
+import { getTokenHeight } from "../utils/token-utils.mjs";
 import { warn } from "../utils/log.mjs";
 
 const zoneRuleWarned = new Set();
@@ -10,10 +11,11 @@ const zoneRuleWarned = new Set();
 /**
  * @param {TokenDocument} tokenDoc
  * @param {TerrainShape} shape
- * @param {TerrainTrigger["elevationRule"]} rule
+ * @param {TerrainTrigger} trigger
  * @param {{ x?: number; y?: number; elevation?: number }} [position]
  */
-export function isTokenInsideShape(tokenDoc, shape, rule, position) {
+export function isTokenInsideShape(tokenDoc, shape, trigger, position) {
+	const rule = trigger.elevationRule;
 	const x = position?.x ?? tokenDoc.x;
 	const y = position?.y ?? tokenDoc.y;
 	const { width, height, hexagonalShape } = tokenDoc;
@@ -55,9 +57,19 @@ export function isTokenInsideShape(tokenDoc, shape, rule, position) {
 	if (rule === "ANY_ELEVATION") return true;
 
 	const elev = fromSceneUnits(position?.elevation ?? tokenDoc.elevation ?? 0);
+	const margin = trigger.margin ?? 0;
+	const top = shape.top + margin;
+	const elevTop = elev + getTokenHeight(tokenDoc);
+	const partial = trigger.partiallyInside !== false;
 	switch (rule) {
-		case "INSIDE_VOLUME_INCLUSIVE": return elev >= shape.bottom && elev <= shape.top;
-		case "INSIDE_VOLUME_HALF_OPEN": return elev >= shape.bottom && elev < shape.top;
+		case "INSIDE_VOLUME_INCLUSIVE":
+			return partial
+				? elevTop >= shape.bottom && elev <= top
+				: elev >= shape.bottom && elevTop <= top;
+		case "INSIDE_VOLUME_HALF_OPEN":
+			return partial
+				? elevTop >= shape.bottom && elev < top
+				: elev >= shape.bottom && elevTop < top;
 		case "ON_FLOOR": return elev === shape.bottom;
 		default: return false;
 	}
@@ -90,7 +102,7 @@ export function getContainingTriggerMatches(tokenDoc, position) {
 		if (!terrainType) continue;
 		for (const trigger of terrainType.triggers) {
 			if (!trigger.enabled) continue;
-			if (isTokenInsideShape(tokenDoc, shape, trigger.elevationRule, position))
+			if (isTokenInsideShape(tokenDoc, shape, trigger, position))
 				result.push({ shape, terrainType, trigger });
 		}
 	}

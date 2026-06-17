@@ -648,6 +648,23 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 						${!terrainType.usesHeight ? html`<p class="hint">${l("TERRAINHEIGHTTOOLS.Trigger.Elevation.ZoneHint")}</p>` : ""}
 					</div>
 
+					<div class="form-group" ?hidden=${!terrainType.usesHeight}>
+						<label>Margin</label>
+						<div class="form-fields">
+							<input type="number" step="0.1" name="${index}.triggers.${triggerIndex}.margin" .value=${trigger.margin ?? 0.5}>
+						</div>
+						<p class="hint">Tolerance added to the terrain top so small overshoots still count. Terrain top 1 with margin 0.5 = token at elev 1.4 still inside, elev 1.6 not.</p>
+					</div>
+
+
+					<div class="form-group" ?hidden=${!terrainType.usesHeight}>
+						<label>Partially Inside</label>
+						<div class="form-fields">
+							<input type="checkbox" name="${index}.triggers.${triggerIndex}.partiallyInside" .checked=${trigger.partiallyInside !== false}>
+						</div>
+
+						<p class="hint">On: any overlap of the token column with the terrain band counts. Off: the token must be fully inside.</p>
+					</div>
 					<div class="form-group">
 						<label>${l("TERRAINHEIGHTTOOLS.Trigger.Target.Label")}</label>
 						<div class="form-fields">
