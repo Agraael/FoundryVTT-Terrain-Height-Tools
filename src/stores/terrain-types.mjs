@@ -103,7 +103,20 @@ export function loadTerrainTypes() {
 
 	// As we're sharing TerrainType instances, freeze them to prevent modification
 	terrainTypes$.value = Object.freeze(terrainTypes
-		.map(t => Object.freeze({ ...createDefaultTerrainType(t.id), ...t })));
+		.map(t => Object.freeze({
+			...createDefaultTerrainType(t.id),
+			...t,
+			triggers: (t.triggers ?? []).map(_migrateTrigger)
+		})));
+}
+
+function _migrateTrigger(trigger) {
+	if ("margin" in trigger && "partiallyInside" in trigger) return trigger;
+	return {
+		...trigger,
+		margin: trigger.margin ?? 0,
+		partiallyInside: trigger.partiallyInside ?? false
+	};
 }
 
 /**
