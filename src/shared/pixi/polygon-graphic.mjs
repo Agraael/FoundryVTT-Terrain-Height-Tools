@@ -58,6 +58,9 @@ export class PolygonGraphic extends PIXI.Container {
 	/** @type {ColorAnimationKeyframe | undefined} */
 	#fillColorAnimationKeyframesPremultiplied;
 
+	// Line/fill/fade live here so they can be cached independently of the label.
+	#content;
+
 	/**
 	 * @param {PolygonGraphicStyle} [style]
 	 * @param {PathCommand[]} [geometry]
@@ -66,7 +69,19 @@ export class PolygonGraphic extends PIXI.Container {
 	 */
 	constructor(style, geometry, holeGeometries, bounds) {
 		super();
+		this.sortableChildren = true;
+		this.#content = this.addChild(new PIXI.Container());
+		this.#content.sortableChildren = true;
 		this.update(style, geometry, holeGeometries, bounds);
+	}
+
+	_addToContent(child) {
+		return this.#content.addChild(child);
+	}
+
+	setCached(cached, resolution = 1) {
+		if (cached) this.#content.cacheAsBitmapResolution = resolution;
+		this.#content.cacheAsBitmap = cached;
 	}
 
 	/**
@@ -76,6 +91,8 @@ export class PolygonGraphic extends PIXI.Container {
 	 * @param {PIXI.Rectangle} bounds
 	 */
 	update(style, geometry, holeGeometries, bounds) {
+		// Drop the cache before mutating content; caller re-enables it after.
+		if (this.#content.cacheAsBitmap) this.#content.cacheAsBitmap = false;
 		this.#style = style;
 		this.#geometry = geometry;
 		this.#holeGeometries = holeGeometries;
@@ -119,7 +136,7 @@ export class PolygonGraphic extends PIXI.Container {
 
 		} else if (this.#lineGraphics) {
 			// Clean up graphics object if no longer needed
-			this.removeChild(this.#lineGraphics);
+			this.#content.removeChild(this.#lineGraphics);
 			this.#lineGraphics.destroy();
 			this.#lineGraphics = undefined;
 		}
@@ -180,16 +197,20 @@ export class PolygonGraphic extends PIXI.Container {
 		}
 
 		if (!hasFill && this.#fillGraphics) {
-			this.removeChild(this.#fillGraphics);
+			this.#content.removeChild(this.#fillGraphics);
 			this.#fillGraphics.destroy();
 			this.#fillGraphics = undefined;
 		}
 
 		if (!hasOffsetAnimatedFill && this.#fillTilingSprite) {
-			this.removeChild(this.#fillTilingSprite);
+			this.#content.removeChild(this.#fillTilingSprite);
 			this.#fillTilingSprite.destroy();
 			this.#fillTilingSprite = undefined;
 		}
+
+		if (this.#lineGraphics) this.#content.addChild(this.#lineGraphics);
+		if (this.#fillGraphics) this.#content.addChild(this.#fillGraphics);
+		if (this.#fillTilingSprite) this.#content.addChild(this.#fillTilingSprite);
 
 		// Pre-calculate the remultiplied color animation values if required
 		this.#lineColorAnimationKeyframesPremultiplied = style?.lineColorAnimation
@@ -253,6 +274,16 @@ export class PolygonGraphic extends PIXI.Container {
 			const yOffset = ((now / 1000) * yDelta) % (this.#style.fillTexture?.height ?? 1);
 			this.#fillTilingSprite.tilePosition.set(xOffset, yOffset);
 		}
+	}
+
+	/** True if the style drives any per-frame animation, so the graphic must not be cached. */
+	isAnimated() {
+		const style = this.#style;
+		if (!style) return false;
+		return !!style.lineColorAnimation
+			|| (style.lineType === LINE_TYPES.DASHED && (style.lineDashOffsetAnimation ?? 0) !== 0)
+			|| !!style.fillColorAnimation
+			|| this.#hasOffsetAnimatedFill(style);
 	}
 
 	/** @param {PolygonGraphicStyle | null} style */

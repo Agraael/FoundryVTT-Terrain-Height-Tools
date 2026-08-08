@@ -52,6 +52,8 @@ export const settingNames = /** @type {const} */ ({
 	showTerrainStackViewerOnTokenLayer: "showTerrainStackViewerOnTokenLayer",
 	showZonesAboveNonZones: "showZonesAboveNonZones",
 	smartLabelPlacement: "smartLabelPlacement",
+	terrainCacheEnabled: "terrainCacheEnabled",
+	terrainCacheResolution: "terrainCacheResolution",
 	terrainHeightLayerVisibilityRadius: "terrainHeightLayerVisibilityRadius",
 	terrainLayerAboveTilesDefault: "terrainLayerAboveTilesDefault",
 	terrainStackViewerDisplayMode: "terrainStackViewerDisplayMode",

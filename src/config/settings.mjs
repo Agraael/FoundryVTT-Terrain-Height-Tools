@@ -52,6 +52,27 @@ export function registerSettings() {
 		config: true
 	}, terrainLayerAboveTilesDefault$);
 
+	registerSetting(settingNames.terrainCacheEnabled, {
+		name: "Cache static terrain",
+		hint: "Bakes non-animated terrain to a bitmap so its shader stops re-uploading every frame.",
+		scope: "client",
+		type: Boolean,
+		default: true,
+		config: true,
+		onChange: () => { for (const child of canvas.primary?.children ?? []) child.refreshCache?.(); }
+	});
+
+	registerSetting(settingNames.terrainCacheResolution, {
+		name: "Terrain cache resolution",
+		hint: "Resolution of the cached terrain bitmap. Higher stays sharper when zoomed in but uses more VRAM.",
+		scope: "client",
+		type: Number,
+		range: { min: 1, max: 4, step: 0.5 },
+		default: 1,
+		config: true,
+		onChange: () => { for (const child of canvas.primary?.children ?? []) child.refreshCache?.(); }
+	});
+
 	registerSetting(settingNames.displayLosMeasurementGm, {
 		name: "SETTINGS.DisplayLosMeasurementGm.Name",
 		hint: "SETTINGS.DisplayLosMeasurementGm.Hint",

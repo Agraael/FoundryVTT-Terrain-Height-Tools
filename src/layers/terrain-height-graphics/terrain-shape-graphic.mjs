@@ -148,7 +148,16 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 			this.shape.polygon.boundingRect
 		);
 
-		canvas.app.ticker.add(this.#boundTick);
+		this.refreshCache();
+		if (this.isAnimated() || this.#textColorAnimationKeyframePremultiplied)
+			canvas.app.ticker.add(this.#boundTick);
+	}
+
+	// Bake non-animated content to a bitmap so smooth-graphics stops re-syncing uniforms every frame.
+	refreshCache() {
+		const enabled = game.settings.get(moduleName, settingNames.terrainCacheEnabled);
+		const resolution = game.settings.get(moduleName, settingNames.terrainCacheResolution) || 1;
+		this.setCached(enabled && !this.isAnimated(), resolution);
 	}
 
 	#drawFade() {
@@ -186,9 +195,16 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 		}
 
 		g.mask = mask;
+
+		this._addToContent(this.#fadeGraphics);
+		this._addToContent(mask);
 	}
 
 	_redrawLabel() {
+		return this.#buildLabel();
+	}
+
+	#buildLabel() {
 		if (this.#label) this.removeChild(this.#label);
 
 		const smartPlacement = game.settings.get(moduleName, settingNames.smartLabelPlacement);
