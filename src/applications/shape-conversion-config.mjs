@@ -274,4 +274,25 @@ class WallConversionConfig extends HandlebarsApplicationMixin(ApplicationV2) {
 		const submitData = this._prepareSubmitData(event, form, formData, options.updateData);
 		wallConfig$.value = submitData;
 	}
+
+	/** @override */
+	_onRender(context, options) {
+		super._onRender(context, options);
+		if (!game.modules.get("lancer-automations")?.active) return;
+		const doorFieldset = this.element.querySelector(`[name="door"]`)?.closest("fieldset");
+		if (!doorFieldset) return;
+		doorFieldset.insertAdjacentHTML("afterend", `
+			<fieldset>
+				<legend>Lancer Automations</legend>
+				<div class="form-group">
+					<label data-tooltip="${l("TERRAINHEIGHTTOOLS.SetLaLosFlagHint")}">${l("TERRAINHEIGHTTOOLS.SetLaLosFlag")}</label>
+					<div class="form-fields">
+						<input type="checkbox" ${convertConfig$.laLosFlag.value ? "checked" : ""}>
+					</div>
+				</div>
+			</fieldset>
+		`);
+		doorFieldset.nextElementSibling.querySelector("input").addEventListener("change",
+			event => convertConfig$.laLosFlag.value = event.target.checked);
+	}
 }

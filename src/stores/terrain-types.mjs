@@ -62,6 +62,7 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {number | null} defaultHeight
  * @property {number | null} defaultElevation
  * @property {boolean} noClimbingCost
+ * @property {boolean} noDescentCost
  * @property {TerrainTrigger[]} triggers
  * @property {AutoGenerateWallsConfig} autoGenerateWalls
  * @property {any[]} regionBehaviors
@@ -78,6 +79,7 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {number} dir
  * @property {boolean} attenuation
  * @property {boolean} setWallHeightFlags
+ * @property {boolean} laSightOnly
  */
 
 /**
@@ -166,6 +168,7 @@ export function createDefaultTerrainType(id = undefined) {
 		defaultHeight: null,
 		defaultElevation: null,
 		noClimbingCost: false,
+		noDescentCost: false,
 		triggers: [],
 		autoGenerateWalls: createDefaultAutoGenerateWalls(),
 		regionBehaviors: [],
@@ -183,7 +186,8 @@ export function createDefaultAutoGenerateWalls() {
 		sound: CONST.WALL_SENSE_TYPES.NORMAL,
 		dir: CONST.WALL_DIRECTIONS.BOTH,
 		attenuation: false,
-		setWallHeightFlags: true
+		setWallHeightFlags: true,
+		laSightOnly: false
 	};
 }
 

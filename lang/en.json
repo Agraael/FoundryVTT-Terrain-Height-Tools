@@ -194,6 +194,8 @@
 		"SelectAShapeEraseHint": "There are multiple shapes at this location. Please select one to erase.",
 		"SelectATerrainType": "Select a terrain type",
 		"SelectToken": "Click to select token",
+		"SetLaLosFlag": "Blocks LA Line of Sight",
+		"SetLaLosFlagHint": "Created walls block Lancer line of sight, not Foundry vision.",
 		"SetWallHeightFlags": "Set Wall Height",
 		"ShadowAmount": "Shadow Strength",
 		"ShadowColor": "Shadow Color",
@@ -213,6 +215,10 @@
 			"Enabled": {
 				"Name": "Auto-generate walls",
 				"Hint": "Vision-blocking edges follow the shape automatically. They aren't actual wall documents, so they won't show up in the wall layer or be persisted in the scene."
+			},
+			"LaSightOnly": {
+				"Name": "LA line of sight only",
+				"Hint": "Edges block Lancer line of sight only, not Foundry senses. Only Sight above applies."
 			}
 		},
 		"Terrain": "Terrain",

@@ -54,7 +54,7 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 	 * @override
 	 */
 	async _selectShape(shape) {
-		const { toDrawing, toRegion, toWalls, setWallHeightFlags, deleteAfter } = convertConfig$.value;
+		const { toDrawing, toRegion, toWalls, setWallHeightFlags, laLosFlag, deleteAfter } = convertConfig$.value;
 
 		const terrainType = getTerrainType(shape.terrainTypeId);
 		if (!terrainType) return;
@@ -140,9 +140,14 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 		}
 
 		if (toWalls) {
-			const flags = setWallHeightFlags && game.modules.get(wallHeightModuleName)?.active
-				? { "wall-height": { top: toSceneUnits(shape.top), bottom: toSceneUnits(shape.bottom) } }
-				: {};
+			const flags = {
+				...(setWallHeightFlags && game.modules.get(wallHeightModuleName)?.active
+					? { "wall-height": { top: toSceneUnits(shape.top), bottom: toSceneUnits(shape.bottom) } }
+					: {}),
+				...(laLosFlag && game.modules.get("lancer-automations")?.active
+					? { "lancer-automations": { losBlock: true } }
+					: {})
+			};
 
 			await canvas.scene.createEmbeddedDocuments("Wall", [...shape.polygon.edges, ...shape.holes.flatMap(h => h.edges)]
 				.map(edge => ({

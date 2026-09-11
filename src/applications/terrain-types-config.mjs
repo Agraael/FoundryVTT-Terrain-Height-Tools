@@ -831,6 +831,16 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 					</div>
 				</div>
 			`)}
+
+			${when(game.modules.get("lancer-automations")?.active, () => html`
+				<div class="form-group">
+					<label>${l("TERRAINHEIGHTTOOLS.AutoWalls.LaSightOnly.Name")}</label>
+					<div class="form-fields">
+						<input type="checkbox" name="${index}.autoGenerateWalls.laSightOnly" .checked=${!!cfg.laSightOnly}>
+					</div>
+					<p class="hint">${l("TERRAINHEIGHTTOOLS.AutoWalls.LaSightOnly.Hint")}</p>
+				</div>
+			`)}
 		`;
 	};
 
@@ -910,6 +920,14 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 				<input id="terrainType${index}_noClimbingCost" type="checkbox" name="${index}.noClimbingCost" .checked=${terrainType.noClimbingCost} ?disabled=${!game.modules.get("lancer-automations")?.active}>
 			</div>
 			<p class="hint">Climbing onto this terrain skips the climb cost; the step costs just the move.</p>
+		</div>
+
+		<div class="form-group">
+			<label for="terrainType${index}_noDescentCost">No Descent Cost (Lancer Automations)</label>
+			<div class="form-fields">
+				<input id="terrainType${index}_noDescentCost" type="checkbox" name="${index}.noDescentCost" .checked=${terrainType.noDescentCost} ?disabled=${!game.modules.get("lancer-automations")?.active}>
+			</div>
+			<p class="hint">Dropping down onto this terrain skips the climb cost; the step costs just the move.</p>
 		</div>
 	`;
 

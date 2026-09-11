@@ -42,7 +42,7 @@ function _addEdgesForShape(shape) {
 		const id = `${prefix}${i}`;
 		const edge = new foundry.canvas.geometry.edges.Edge(e.p1, e.p2, {
 			id,
-			type: "wall",
+			type: cfg.laSightOnly ? "laSight" : "wall",
 			light: cfg.light,
 			sight: cfg.sight,
 			sound: cfg.sound,

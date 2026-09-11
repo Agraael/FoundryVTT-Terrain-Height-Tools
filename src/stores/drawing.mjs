@@ -68,6 +68,7 @@ export const convertConfig$ = deepSignal({
 	toRegion: false,
 	toWalls: false,
 	setWallHeightFlags: true,
+	laLosFlag: false,
 	deleteAfter: true
 });
 
