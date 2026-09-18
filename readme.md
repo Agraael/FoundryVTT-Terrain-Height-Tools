@@ -11,6 +11,11 @@ Fork of [Wibble199's Terrain Height Tools](https://github.com/Wibble199/FoundryV
 ## What this fork adds
 
 - **Terrain Triggers**: per-terrain actions on enter/leave/move. Macro, JS, or status effect. See [Triggers](#triggers).
+- **Tanaka contours** (experimental): each drop drawn as a highlight facing the light, a shadow facing away.
+- **Drop shading** (experimental): shades the ground beside terrain, further the further it falls.
+- **Terrain above lower tokens**: a token under a taller block is drawn beneath it. Beside it, still on top.
+- **Scale terrain visuals to the grid**: line width, dashes, text and textures authored on a grid of 100.
+- **Tokens in the terrain stack viewer**: shown under the cursor with portrait, elevation and height.
 - **Extra API**: token-in-shape and trigger-match helpers.
 
 ---
