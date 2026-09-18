@@ -2,6 +2,7 @@
 import { signal } from "@preact/signals-core";
 import { html, render } from "lit";
 import { TerrainTypesConfig } from "../applications/terrain-types-config.mjs";
+import { registerElevationMarkSettings } from "../experimental/terrain-elevation-marks.mjs";
 import { moduleName, sceneFlags, settingNames, terrainStackViewerDisplayModes, tokenFlags, tokenRelativeHeights, toolbarPositions } from "../consts.mjs";
 import { loadTerrainTypes } from "../stores/terrain-types.mjs";
 
@@ -15,6 +16,7 @@ export const tokenElevationChangeInsertClimbWaypoints$ = signal(false);
 export const showZonesAboveNonZones$ = signal(false);
 export const useFractionsForLabels$ = signal(true);
 export const terrainLayerAboveTilesDefault$ = signal(true);
+export const terrainAboveLowerTokens$ = signal(false);
 export const paintToolbarUseHeightElevation$ = signal(false);
 
 /** @type {Signal<toolbarPositions>} */
@@ -52,6 +54,25 @@ export function registerSettings() {
 		config: true
 	}, terrainLayerAboveTilesDefault$);
 
+	registerSetting(settingNames.terrainAboveLowerTokens, {
+		name: "Terrain above lower tokens",
+		hint: "A token standing under a taller block is drawn beneath its fill, shading and contour. Tokens merely beside a block stay on top of it.",
+		scope: "world",
+		type: Boolean,
+		default: false,
+		config: true
+	}, terrainAboveLowerTokens$);
+
+	registerSetting(settingNames.scaleVisualsToGrid, {
+		name: "Scale terrain visuals to the grid",
+		hint: "Treats every terrain type's line width, dash size, text size, texture scale and offset as values on a grid of 100.",
+		scope: "world",
+		type: Boolean,
+		default: false,
+		config: true,
+		onChange: () => canvas.terrainHeightGraphicsLayer?._redrawAll()
+	});
+
 	registerSetting(settingNames.terrainCacheEnabled, {
 		name: "Cache static terrain",
 		hint: "Bakes non-animated terrain to a bitmap so its shader stops re-uploading every frame.",
@@ -72,6 +93,8 @@ export function registerSettings() {
 		config: true,
 		onChange: () => { for (const child of canvas.primary?.children ?? []) child.refreshCache?.(); }
 	});
+
+	registerElevationMarkSettings();
 
 	registerSetting(settingNames.displayLosMeasurementGm, {
 		name: "SETTINGS.DisplayLosMeasurementGm.Name",

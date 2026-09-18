@@ -86,16 +86,18 @@ export class PolygonGraphic extends PIXI.Container {
 
 	/**
 	 * @param {PolygonGraphicStyle | null} style
-	 * @param {PathCommand[]} geometry
+	 * @param {PathCommand[]} geometry Filled outline.
 	 * @param {PathCommand[][]} holeGeometries
 	 * @param {PIXI.Rectangle} bounds
+	 * @param {PathCommand[]} [lineGeometry] Stroked outline, when it differs from the filled one.
+	 * @param {PathCommand[][]} [lineHoleGeometries]
 	 */
-	update(style, geometry, holeGeometries, bounds) {
+	update(style, geometry, holeGeometries, bounds, lineGeometry, lineHoleGeometries) {
 		// Drop the cache before mutating content; caller re-enables it after.
 		if (this.#content.cacheAsBitmap) this.#content.cacheAsBitmap = false;
 		this.#style = style;
-		this.#geometry = geometry;
-		this.#holeGeometries = holeGeometries;
+		this.#geometry = lineGeometry ?? geometry;
+		this.#holeGeometries = lineHoleGeometries ?? holeGeometries;
 
 		// Line
 		const hasLine = this.#hasLine(style);
@@ -119,16 +121,16 @@ export class PolygonGraphic extends PIXI.Container {
 
 			switch (style.lineType) {
 				case LINE_TYPES.SOLID: {
-					drawComplexPath(this.#lineGraphics, geometry);
-					for (const holeGeometry of holeGeometries)
+					drawComplexPath(this.#lineGraphics, this.#geometry);
+					for (const holeGeometry of this.#holeGeometries)
 						drawComplexPath(this.#lineGraphics, holeGeometry);
 					break;
 				}
 
 				case LINE_TYPES.DASHED: {
 					const dashConfig = { dashSize: style.lineDashSize, gapSize: style.lineGapSize };
-					drawDashedComplexPath(this.#lineGraphics, geometry, dashConfig);
-					for (const holeGeometry of holeGeometries)
+					drawDashedComplexPath(this.#lineGraphics, this.#geometry, dashConfig);
+					for (const holeGeometry of this.#holeGeometries)
 						drawDashedComplexPath(this.#lineGraphics, holeGeometry, dashConfig);
 					break;
 				}
@@ -149,6 +151,8 @@ export class PolygonGraphic extends PIXI.Container {
 		if (hasOffsetAnimatedFill) {
 			const s = this.#fillTilingSprite ??= this.addChild(new PIXI.TilingSprite());
 			const g = this.#fillGraphics ??= this.addChild(new PIXI.Graphics());
+			// Reused across updates, and without this every redraw stacks another fill on the last
+			g.clear();
 			s.mask = g;
 
 			s.texture = style.fillTexture;
@@ -171,6 +175,8 @@ export class PolygonGraphic extends PIXI.Container {
 
 		} else if (hasFill) {
 			const g = this.#fillGraphics ??= this.addChild(new PIXI.Graphics());
+
+			g.clear();
 
 			if (style.fillType === CONST.DRAWING_FILL_TYPES.PATTERN && style.fillTexture) {
 				const { x: xOffset, y: yOffset } = style.fillTextureOffset ?? { x: 0, y: 0 };

@@ -4,7 +4,7 @@ import { wallHeightModuleName } from "../../../consts.mjs";
 import { heightMap } from "../../../geometry/height-map.mjs";
 import { convertConfig$, wallConfig$ } from "../../../stores/drawing.mjs";
 import { getTerrainType } from "../../../stores/terrain-types.mjs";
-import { toSceneUnits } from "../../../utils/grid-utils.mjs";
+import { toSceneUnits, visualGridScale } from "../../../utils/grid-utils.mjs";
 import { getLabelText } from "../../terrain-height-graphics/terrain-shape-graphic.mjs";
 import { AbstractEditorTool } from "./abstract/abstract-editor-tool.mjs";
 
@@ -86,7 +86,7 @@ export class ConvertShapeEditorTool extends AbstractEditorTool {
 					textAlpha: terrainType.textOpacity,
 					textColor: terrainType.textColor,
 					fontFamily: terrainType.font,
-					fontSize: terrainType.textSize
+					fontSize: terrainType.textSize * visualGridScale()
 				},
 				...shape.holes.map(hole => {
 					const { x1, y1, w, h } = hole.boundingBox;

@@ -4,6 +4,7 @@
 /** @import { TerrainType } from "../../stores/terrain-types.mjs" */
 /** @import { TerrainHeightGraphicsLayer } from "./terrain-height-graphics-layer.mjs" */
 import { moduleName, settingNames } from "../../consts.mjs";
+import { terrainAboveLowerTokens$ } from "../../config/settings.mjs";
 import { LineSegment } from "../../geometry/line-segment.mjs";
 import { Point } from "../../geometry/point.mjs";
 import { getColorAnimationValue, premultiplyKeyframes } from "../../shared/color/color-animation.mjs";
@@ -11,7 +12,8 @@ import { unpremultiply } from "../../shared/color/conversions.mjs";
 import { PolygonGraphic } from "../../shared/pixi/polygon-graphic.mjs";
 import { terrainTypesWithPreview$, terrainTypesWithPreviewMap$ } from "../../stores/terrain-types.mjs";
 import { chunk } from "../../utils/array-utils.mjs";
-import { toSceneUnits } from "../../utils/grid-utils.mjs";
+import { toSceneUnits, visualGridScale } from "../../utils/grid-utils.mjs";
+import { ShapeElevationMarks } from "../../experimental/terrain-elevation-marks.mjs";
 import { isoLabelSkew, prettyFraction } from "../../utils/misc-utils.mjs";
 
 const { CanvasAnimation } = foundry.canvas.animation;
@@ -46,6 +48,12 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 	/** @type {ColorAnimationKeyframe[] | null} */
 	#textColorAnimationKeyframePremultiplied;
 
+	/** @type {ShapeElevationMarks} */
+	#marks;
+
+	/** @type {PIXI.Texture | undefined} */
+	_fillTexture;
+
 	#boundTick;
 
 	/**
@@ -61,6 +69,7 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 
 		this.shape = shape;
 		this.terrainType = terrainTypesWithPreviewMap$.value.get(shape.terrainTypeId);
+		this.#marks = new ShapeElevationMarks(this);
 
 		this.#textColorAnimationKeyframePremultiplied = this.terrainType?.textColorAnimation
 			? premultiplyKeyframes(this.terrainType.textColorAnimation.keyframes)
@@ -78,12 +87,19 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 		if (this.#fadeGraphics)
 			canvas.blurFilters.delete(this.#fadeGraphics.filters[0]);
 
+		this.#marks.destroy();
+
 		// Remove ticker function from global ticker
 		canvas.app.ticker.remove(this.#boundTick);
 	}
 
+	/** @param {import("../../experimental/terrain-elevation-marks.mjs").MarkContext} context */
+	_setElevationMarks(context) {
+		this.#marks.setContext(context);
+	}
+
 	get elevation() {
-		return this.shape.elevation;
+		return terrainAboveLowerTokens$.value && this.terrainType?.usesHeight ? toSceneUnits(this.shape.top) : 0;
 	}
 
 	/**
@@ -123,41 +139,64 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 	async #drawMain() {
 		if (!this.terrainType) return;
 
-		super.update(
-			{
-				lineType: this.terrainType.lineType,
-				lineWidth: this.terrainType.lineWidth,
-				lineColor: Color.from(this.terrainType.lineColor),
-				lineOpacity: this.terrainType.lineOpacity,
-				lineColorAnimation: this.terrainType.lineColorAnimation,
-				lineDashSize: this.terrainType.lineDashSize,
-				lineGapSize: this.terrainType.lineGapSize,
-				lineDashOffsetAnimation: this.terrainType.lineDashOffsetAnimation,
-				lineAlignment: 0,
-				fillType: this.terrainType.fillType,
-				fillColor: Color.from(this.terrainType.fillColor),
-				fillOpacity: this.terrainType.fillOpacity,
-				fillColorAnimation: this.terrainType.fillColorAnimation,
-				fillTexture: await this.#parent._terrainTextures.get(this.shape.terrainTypeId),
-				fillTextureOffset: this.terrainType.fillTextureOffset,
-				fillTextureOffsetAnimation: this.terrainType.fillTextureOffsetAnimation,
-				fillTextureScale: this.terrainType.fillTextureScale
-			},
-			polygonToPathCommands(this.shape.polygon),
-			this.shape.holes.map(polygonToPathCommands),
-			this.shape.polygon.boundingRect
-		);
+		this._fillTexture = await this.#parent._terrainTextures.get(this.shape.terrainTypeId);
+
+		this._applyStyle();
+
+		this.#marks.ready();
 
 		this.refreshCache();
 		if (this.isAnimated() || this.#textColorAnimationKeyframePremultiplied)
 			canvas.app.ticker.add(this.#boundTick);
 	}
 
+	/**
+	 * Draws the fill and outline. Both can be given a path other than the shape's own, which is how a shape steps
+	 * clear of a taller neighbour's contour.
+	 * @param {import("../../shared/pixi/drawing.mjs").PathCommand[]} [outline]
+	 * @param {import("../../shared/pixi/drawing.mjs").PathCommand[][]} [outlineHoles]
+	 */
+	_applyStyle(outline, outlineHoles, stroke, strokeHoles) {
+		if (!this.terrainType) return;
+
+		// Terrain types are authored on a grid of 100, so everything sized in pixels follows the scene's grid
+		const gridScale = visualGridScale();
+
+		const scalePoint = point => point && { x: (point.x ?? 0) * gridScale, y: (point.y ?? 0) * gridScale };
+
+		super.update(
+			{
+				lineType: this.terrainType.lineType,
+				lineWidth: this.terrainType.lineWidth * gridScale,
+				lineColor: Color.from(this.terrainType.lineColor),
+				lineOpacity: this.terrainType.lineOpacity,
+				lineColorAnimation: this.terrainType.lineColorAnimation,
+				lineDashSize: this.terrainType.lineDashSize * gridScale,
+				lineGapSize: this.terrainType.lineGapSize * gridScale,
+				lineDashOffsetAnimation: this.terrainType.lineDashOffsetAnimation,
+				lineAlignment: 0,
+				fillType: this.terrainType.fillType,
+				fillColor: Color.from(this.terrainType.fillColor),
+				fillOpacity: this.terrainType.fillOpacity,
+				fillColorAnimation: this.terrainType.fillColorAnimation,
+				fillTexture: this._fillTexture,
+				fillTextureOffset: scalePoint(this.terrainType.fillTextureOffset),
+				fillTextureOffsetAnimation: this.terrainType.fillTextureOffsetAnimation,
+				fillTextureScale: scalePoint(this.terrainType.fillTextureScale)
+			},
+			outline ?? polygonToPathCommands(this.shape.polygon),
+			outlineHoles ?? this.shape.holes.map(polygonToPathCommands),
+			this.shape.polygon.boundingRect,
+			stroke,
+			strokeHoles
+		);
+	}
+
 	// Bake non-animated content to a bitmap so smooth-graphics stops re-syncing uniforms every frame.
 	refreshCache() {
 		const enabled = game.settings.get(moduleName, settingNames.terrainCacheEnabled);
 		const resolution = game.settings.get(moduleName, settingNames.terrainCacheResolution) || 1;
-		this.setCached(enabled && !this.isAnimated(), resolution);
+		this.setCached(enabled && !this.isAnimated() && !this.#fadeGraphics, resolution);
 	}
 
 	#drawFade() {
@@ -326,6 +365,8 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 	tick() {
 		super.tick();
 
+		this.#marks.tick();
+
 		if (this.#label && this.#textColorAnimationKeyframePremultiplied) {
 			const { duration, easingFunc } = this.terrainType.textColorAnimation;
 			const { color, alpha } = getColorAnimationValue(this.#textColorAnimationKeyframePremultiplied, duration, easingFunc, Date.now());
@@ -340,19 +381,20 @@ export class TerrainShapeGraphic extends PolygonGraphic {
 
 		const color = Color.from(this.terrainType.textColor ?? 0xFFFFFF);
 		const autoStrokeColor = color.hsv[2] > 0.6 ? 0x000000 : 0xFFFFFF;
+		const gridScale = visualGridScale();
 
 		style.fontFamily = this.terrainType.font ?? CONFIG.defaultFontFamily;
-		style.fontSize = this.terrainType.textSize;
+		style.fontSize = this.terrainType.textSize * gridScale;
 
 		style.fill = color;
 
-		style.strokeThickness = this.terrainType.textStrokeThickness;
+		style.strokeThickness = this.terrainType.textStrokeThickness * gridScale;
 		style.stroke = this.terrainType.textStrokeColor?.length
 			? Color.from(this.terrainType.textStrokeColor)
 			: autoStrokeColor;
 
 		style.dropShadow = this.terrainType.textShadowAmount > 0;
-		style.dropShadowBlur = this.terrainType.textShadowAmount;
+		style.dropShadowBlur = this.terrainType.textShadowAmount * gridScale;
 		style.dropShadowColor = this.terrainType.textShadowColor?.length
 			? Color.from(this.terrainType.textShadowColor)
 			: autoStrokeColor;

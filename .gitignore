@@ -7,3 +7,6 @@ foundry.js
 
 # Built files
 dist/
+
+# Parked work, kept out of the build and out of the repo
+research/

@@ -2,8 +2,10 @@
 /** @import { TerrainType } from "../../stores/terrain-types.mjs" */
 /** @import { Signal } from "@preact/signals-core" */
 import { computed, signal, untracked } from "@preact/signals-core";
-import { showTerrainHeightOnTokenLayer$, showZonesAboveNonZones$, terrainHeightLayerVisibilityRadius$, terrainLayerAboveTilesDefault$, useFractionsForLabels$ } from "../../config/settings.mjs";
+import { showTerrainHeightOnTokenLayer$, showZonesAboveNonZones$, terrainAboveLowerTokens$, terrainHeightLayerVisibilityRadius$, terrainLayerAboveTilesDefault$, useFractionsForLabels$ } from "../../config/settings.mjs";
 import { heightMapProviderId, terrainHeightEditorControlName, tools } from "../../consts.mjs";
+import { refreshAllTokenTerrainSort } from "../../automation/token-terrain-sort.mjs";
+import { refreshElevationMarks } from "../../experimental/terrain-elevation-marks.mjs";
 import { cursorWorldPosition$, invisibleTerrainTypes$, sceneRenderAboveTilesChoice$ } from "../../stores/canvas.mjs";
 import { activeControl$, activeTool$ } from "../../stores/scene-controls.mjs";
 import { allTerrainShapes$ } from "../../stores/terrain-manager.mjs";
@@ -37,6 +39,8 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 
 	/** @type {PIXI.Sprite | undefined} */
 	#cursorRadiusMask;
+
+	#marksDirty = false;
 
 	/** @type {AbortController} */
 	#tearDownController;
@@ -108,17 +112,25 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 			canvas.primary.sortChildren();
 		}, tearDownSignal);
 
+		abortableSubscribe(terrainAboveLowerTokens$, () => {
+			refreshAllTokenTerrainSort();
+			canvas.primary.sortChildren();
+		}, tearDownSignal);
+
+		allTerrainShapes$.subscribe({ change: () => refreshAllTokenTerrainSort() }, { signal: tearDownSignal });
+
 		// When 'use fractions' setting is changed, re-do the labels
 		abortableSubscribe(useFractionsForLabels$, () => {
 			for (const graphic of this.#allShapeGraphics)
 				graphic._redrawLabel();
 		}, tearDownSignal);
 
-		// Shapes draw before iso rotates the stage, so re-do labels next frame to catch the skew.
+		// Shapes draw before iso rotates the stage, so re-do labels next frame to catch the skew
 		requestAnimationFrame(() => {
 			if (this.#tearDownController?.signal.aborted) return;
 			for (const graphic of this.#allShapeGraphics)
 				graphic._redrawLabel();
+			this._refreshElevationMarks();
 		});
 
 		this.on("globalpointermove", this._onGlobalPointerMove);
@@ -138,6 +150,11 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 		cursorWorldPosition$.value = pos;
 		this.#cursorRadiusMask?.position.set(pos.x, pos.y);
 	}, 1000 / 60);
+
+	/** Redraws every shape currently on the scene. */
+	_redrawAll() {
+		this._redrawShapes(allTerrainShapes$.value);
+	}
 
 	/**
 	 * Redraws the graphics layer using the supplied height map data.
@@ -169,7 +186,10 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 
 			const shapeGraphic = new TerrainShapeGraphic(this, shape);
 			shapeGraphic.sortLayer = this.#graphicSortLayer$.value;
-			shapeGraphic.sort = (terrainType.usesHeight ? 1 : 0) * (showZonesAboveNonZones$.value ? -1 : 0);
+			// Must match the showZonesAboveNonZones subscriber, or newly painted shapes sort differently to loaded ones
+			shapeGraphic.sort = terrainType.usesHeight
+				? shape.top
+				: showZonesAboveNonZones$.value ? Number.MAX_SAFE_INTEGER : -1;
 			providerGraphics.set(shape, shapeGraphic);
 			canvas.primary.addChild(shapeGraphic);
 			newShapeGraphics.push(shapeGraphic);
@@ -177,6 +197,10 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 
 		this._updateShapeMasks({ shapes: newShapeGraphics });
 		this._updateShapesVisibility({ shapes: newShapeGraphics, animate: false });
+
+		// Synchronous, so each graphic has its surroundings before its async draw finishes
+		this.#marksDirty = false;
+		this._refreshElevationMarks();
 	}
 
 	/** @param {TerrainShape[]} removedShapes */
@@ -190,6 +214,22 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 			graphic._destroy();
 			canvas.primary.removeChild(graphic);
 		}
+
+		// One paint stroke fires remove then add, and the add refreshes synchronously
+		this.#marksDirty = true;
+		Promise.resolve().then(() => {
+			if (!this.#marksDirty || this.#tearDownController?.signal.aborted) return;
+			this.#marksDirty = false;
+			this._refreshElevationMarks();
+		});
+	}
+
+	/**
+	 * Tells every graphic what now surrounds it, so that shapes standing in another shape's hole only wall the part of
+	 * themselves that stands above it. Graphics whose surroundings did not change ignore this.
+	 */
+	_refreshElevationMarks() {
+		refreshElevationMarks([...this.#allShapeGraphics]);
 	}
 
 	_clearShapes() {
@@ -250,7 +290,8 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 			const hasMask = !shape.terrainType.isAlwaysVisible
 				&& !isEditLayerActive
 				&& !isHighlightingObjects;
-			shape.mask = hasMask ? this.#cursorRadiusMask : null;
+
+			shape.mask = hasMask ? this.#cursorRadiusMask ?? null : null;
 		}
 	}
 

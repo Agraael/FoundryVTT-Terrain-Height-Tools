@@ -4,6 +4,7 @@ import { initAutoWallEdges } from "./auto-wall-edges.mjs";
 import { TokenLineOfSightToolbar } from "./applications/token-line-of-sight-toolbar.mjs";
 import { initSceneRegionAutomation } from "./automation/scene-regions.mjs";
 import * as autoTokenElevation from "./automation/token-elevation.mjs";
+import { applyTokenTerrainSort } from "./automation/token-terrain-sort.mjs";
 import { registerSceneControls } from "./config/controls.mjs";
 import { registerKeybindings } from "./config/keybindings.mjs";
 import { addAboveTilesToSceneConfig, addIgnoreAutoElevationToTokenConfig, registerSettings } from "./config/settings.mjs";
@@ -51,6 +52,8 @@ function init() {
 	Hooks.on("canvasTearDown", canvasStore.onCanvasTearDown);
 
 	Hooks.on("preCreateToken", autoTokenElevation.onTokenPreCreate);
+
+	Hooks.on("refreshToken", applyTokenTerrainSort);
 
 	registerKeybindings();
 

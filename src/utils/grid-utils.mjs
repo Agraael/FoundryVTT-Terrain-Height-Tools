@@ -1,3 +1,4 @@
+import { moduleName, settingNames } from "../consts.mjs";
 import { Polygon } from "../geometry/polygon.mjs";
 import { groupBy } from "./array-utils.mjs";
 import { error, warn } from "./log.mjs";
@@ -5,6 +6,14 @@ import { cacheReturn, OrderedSet } from "./misc-utils.mjs";
 
 /** The side length of a hexagon with a grid size of 1 (apothem of 0.5). */
 const HEX_UNIT_SIDE_LENGTH = 1 / Math.sqrt(3);
+
+const BASE_GRID_SIZE = 100;
+
+export function visualGridScale() {
+	return game.settings.get(moduleName, settingNames.scaleVisualsToGrid)
+		? canvas.grid.size / BASE_GRID_SIZE
+		: 1;
+}
 
 /**
  * Returns a set of coordinates for the grid cell at the given position.
