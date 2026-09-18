@@ -430,9 +430,6 @@ export class ShapeElevationMarks {
 		for (let ringIndex = 0; ringIndex < rings.length; ringIndex++) {
 			const polygon = rings[ringIndex];
 
-			// A hole with a shape standing in it is not a pit
-			if (ringIndex > 0 && this.#context?.shapePolygonKeys.has(polygonKey(polygon))) continue;
-
 			// Stepped back wherever a taller neighbour marks the edge
 			const drawnVertices = insetRings?.[ringIndex];
 			const sides = [];
