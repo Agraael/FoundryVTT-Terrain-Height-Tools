@@ -11,8 +11,9 @@ import { canvasReady$, cursorWorldPosition$ } from "../stores/canvas.mjs";
 import { activeControl$ } from "../stores/scene-controls.mjs";
 import { allTerrainShapes$, getShapesAtPoint } from "../stores/terrain-manager.mjs";
 import { getTerrainType } from "../stores/terrain-types.mjs";
-import { toSceneUnits } from "../utils/grid-utils.mjs";
+import { fromSceneUnits, toSceneUnits } from "../utils/grid-utils.mjs";
 import { prettyFraction } from "../utils/misc-utils.mjs";
+import { getTokenHeight } from "../utils/token-utils.mjs";
 import { styleTerrainColor } from "./directives/style-terrain-color.mjs";
 import { LitApplicationMixin } from "./mixins/lit-application-mixin.mjs";
 
@@ -22,6 +23,14 @@ const TEMPLATEMACRO_ID = "templatemacro";
 const templatesVersion$ = signal(0);
 for (const hook of ["createMeasuredTemplate", "updateMeasuredTemplate", "deleteMeasuredTemplate"])
 	Hooks.on(hook, () => templatesVersion$.value++);
+
+const tokensVersion$ = signal(0);
+for (const hook of ["createToken", "updateToken", "deleteToken", "controlToken"])
+	Hooks.on(hook, () => tokensVersion$.value++);
+
+const tokenColumnX = 174.8;
+const tokenColumnWidth = 41.4;
+const tokenAvatarRadius = 9.5;
 
 // How many pixels each unit in height is represented by in proportional mode.
 const proportionalModeScale = 28;
@@ -76,6 +85,21 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		catch { return []; }
 	});
 
+	#tokensUnderMouse$ = computed(() => {
+		if (!canvasReady$.value) return [];
+
+		// eslint-disable-next-line no-unused-vars
+		const _ = tokensVersion$.value;
+
+		const { x, y } = cursorWorldPosition$.value;
+		const previews = canvas.tokens?.preview?.children ?? [];
+		const placed = (canvas.tokens?.placeables ?? []).filter(token => !token._preview);
+		return [...previews, ...placed]
+			.filter(token => token.visible && token.getShape().contains(x - token.x, y - token.y))
+			.sort((first, second) => (Number(second.controlled) - Number(first.controlled))
+				|| (second.document.elevation - first.document.elevation));
+	});
+
 	// The stack viewer panel is visible when any of the following are true:
 	// - The hotkey is being held down.
 	// - The user is on the Terrain Height Tools toolbar
@@ -110,16 +134,21 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 				const _ = this.#terrainShapesUnderMouse$.value;
 				// eslint-disable-next-line no-unused-vars
 				const __ = this.#templatesUnderMouse$.value;
-				this.render();
+				// eslint-disable-next-line no-unused-vars
+				const ___ = this.#tokensUnderMouse$.value;
+				this.render({ force: !this.rendered });
 			}
 		});
 
 		// When display mode setting is changed, re-render
 		terrainStackViewerDisplayMode$.subscribe(() => {
 			if (this.#isVisible$.value)
-				this.render();
+				this.render({ force: !this.rendered });
 		});
 	}
+
+	/** @override */
+	bringToFront() {}
 
 	/** @override */
 	async _renderFrame(options) {
@@ -140,10 +169,17 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 	_renderHTML() {
 		const shapes = this.#terrainShapesUnderMouse$.value;
 		const templates = this.#templatesUnderMouse$.value;
+		const tokens = this.#tokensUnderMouse$.value;
 
-		if (shapes.length === 0 && templates.length === 0) {
+		if (shapes.length === 0 && templates.length === 0 && tokens.length === 0) {
 			return html`<p style="text-align: center;">${l("TERRAINHEIGHTTOOLS.HoverTerrainToShowDetails")}</p>`;
 		}
+
+		const tokenBlocks = tokens.map(token => {
+			const bottom = fromSceneUnits(token.document.elevation);
+			const height = fromSceneUnits(tokenHeightOf(token.document));
+			return { token, bottom, height, top: bottom + height, color: tokenColor(token) };
+		});
 
 		const shapesWithMeta = shapes.map(shape => {
 			const terrainType = getTerrainType(shape.terrainTypeId);
@@ -184,9 +220,9 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		}
 		nonZoneShapes.sort((a, b) => b.shape.elevation - a.shape.elevation);
 
-		const highestElevation = nonZoneShapes.length
-			? Math.max.apply(null, nonZoneShapes.map(({ shape }) => shape.top))
-			: 0;
+		const tops = [...nonZoneShapes.map(({ shape }) => shape.top), ...tokenBlocks.map(block => block.top)];
+		const highestElevation = tops.length ? Math.max(...tops) : 0;
+		const stacked = nonZoneShapes.length > 0 || tokenBlocks.length > 0;
 
 		const configuredDisplayMode = terrainStackViewerDisplayMode$.value;
 		const isProportionalDisplayMode = configuredDisplayMode === "auto"
@@ -194,14 +230,14 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			: configuredDisplayMode === "proportional";
 
 		return html`
-			${when(nonZoneShapes.length > 0 || zoneShapes.length > 0, () => html`
+			${when(stacked || zoneShapes.length > 0, () => html`
 				<!-- Non-zone shapes (terrain with height + gated templatemacro templates) -->
-				${nonZoneShapes.length > 0 ? (isProportionalDisplayMode
-					? this.#renderProportionalDisplay(nonZoneShapes, highestElevation)
-					: this.#renderCompactDisplay(nonZoneShapes)) : nothing}
+				${stacked ? (isProportionalDisplayMode
+					? this.#renderProportionalDisplay(nonZoneShapes, tokenBlocks, highestElevation)
+					: this.#renderCompactDisplay(nonZoneShapes, tokenBlocks)) : nothing}
 
 				<!-- Separator -->
-				${when(nonZoneShapes.length && zoneShapes.length, () => html`<hr>`)}
+				${when(stacked && zoneShapes.length, () => html`<hr>`)}
 
 				<!-- Zones -->
 				${zoneShapes.map(({ terrainType }) => html`
@@ -212,7 +248,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			`)}
 
 			<!-- Separator between terrain and non-gated templatemacro zones -->
-			${when((shapes.length > 0 || nonZoneShapes.length > 0) && flatTemplates.length > 0, () => html`<hr>`)}
+			${when((shapes.length > 0 || stacked) && flatTemplates.length > 0, () => html`<hr>`)}
 
 			<!-- Non-gated templatemacro zones (gated ones are in the proportional display above) -->
 			${flatTemplates.length > 0 ? this.#renderTemplates(flatTemplates) : nothing}
@@ -241,12 +277,18 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 
 	/**
 	 * @param {{ shape: TerrainShape; terrainType: TerrainType; }[]} shapes
+	 * @param {TokenBlock[]} tokenBlocks
 	 * @param {number} highestElevation
 	 */
-	#renderProportionalDisplay(shapes, highestElevation) {
+	#renderProportionalDisplay(shapes, tokenBlocks, highestElevation) {
 		const viewBoxY = ((highestElevation + 0.5) * -proportionalModeScale) - proportionalModePadding;
 		const viewBoxH = ((highestElevation + 0.5) * proportionalModeScale) + (2 * proportionalModePadding);
 		const viewBox = `0 ${viewBoxY} 230 ${viewBoxH}`;
+
+		const terrainWidth = tokenBlocks.length ? "57%" : "80%";
+		const terrainLabelX = tokenBlocks.length ? "43.5%" : "55%";
+		const barWidth = (tokenColumnWidth - (2 * (tokenBlocks.length - 1))) / Math.max(1, tokenBlocks.length);
+		const format = value => prettyFraction(toSceneUnits(value));
 
 		return html`
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox=${viewBox}>
@@ -275,13 +317,13 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 					return svg`
 						<rect
 							x="15%" y=${(shape.top * -proportionalModeScale) + (borderWidth * proportionalModeBorderScale * 0.5) + proportionalModePadding}
-							width="80%" height=${(shape.height * proportionalModeScale) + (borderWidth * -proportionalModeBorderScale) + (proportionalModePadding * -2)}
+							width=${terrainWidth} height=${(shape.height * proportionalModeScale) + (borderWidth * -proportionalModeBorderScale) + (proportionalModePadding * -2)}
 							stroke-width=${borderWidth * proportionalModeBorderScale}
 							${styleTerrainColor(terrainType, { fillColorCssPropertyName: "fill", lineColorCssPropertyName: "stroke", lineWidthCssPropertyName: "", textColorCssPropertyName: "" })}
 						/>
 
 						<text class="shape-label"
-							x="55%" y=${(shape.elevation + (shape.height / 2)) * -proportionalModeScale}
+							x=${terrainLabelX} y=${(shape.elevation + (shape.height / 2)) * -proportionalModeScale}
 							text-anchor="middle" dominant-baseline="middle"
 							${styleTerrainColor(terrainType, { fillColorCssPropertyName: "", lineColorCssPropertyName: "", lineWidthCssPropertyName: "", textColorCssPropertyName: "fill" })}
 						>
@@ -289,20 +331,113 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 						</text>
 					`;
 				})}
+
+				<!-- Token bars -->
+				${tokenBlocks.map((block, index) => {
+					const barX = tokenColumnX + (index * (barWidth + 2));
+					const barY = (block.top * -proportionalModeScale) + proportionalModePadding + 1;
+					const barHeight = (block.height * proportionalModeScale) - (proportionalModePadding * 2) - 2;
+					const centreX = barX + (barWidth / 2);
+					const radius = Math.min(tokenAvatarRadius, (barWidth / 2) - 2);
+					const avatarY = barY + Math.min(radius + 4, barHeight / 2);
+					const showAvatar = radius >= 5;
+					const showLabel = barHeight >= 48;
+					const clipId = `tht-stack-avatar-${index}`;
+					return svg`
+						<rect class="token-bar"
+							x=${barX} y=${barY} width=${barWidth} height=${barHeight}
+							style=${`fill: ${rgba(block.color, 0.32)}; stroke: ${block.color};`}
+						/>
+
+						${when(showAvatar, () => svg`
+							<clipPath id=${clipId}><circle cx=${centreX} cy=${avatarY} r=${radius} /></clipPath>
+							<image href=${block.token.document.texture.src}
+								x=${centreX - radius} y=${avatarY - radius} width=${radius * 2} height=${radius * 2}
+								clip-path=${`url(#${clipId})`} preserveAspectRatio="xMidYMid slice"
+							/>
+							<circle class="token-avatar-ring"
+								cx=${centreX} cy=${avatarY} r=${radius}
+								style=${`stroke: ${block.color};`}
+							/>
+						`)}
+
+						${when(showLabel, () => svg`
+							<text class="token-bar-label"
+								x=${centreX} y=${barY + (radius * 2) + 18}
+								text-anchor="middle" dominant-baseline="middle"
+								style=${`fill: ${block.color};`}
+							>
+								${format(block.bottom)} → ${format(block.top)}
+							</text>
+						`)}
+					`;
+				})}
 			</svg>
 		`;
 	}
 
-	/** @param {{ shape: TerrainShape; terrainType: TerrainType; }[]} shapes */
-	#renderCompactDisplay(shapes) {
-		const f = v => prettyFraction(toSceneUnits(v));
-		return html`${shapes.map(({ shape, terrainType }) => html`
-			<div class="terrain-layer-block" ${styleTerrainColor(terrainType, { lineWidthCssPropertyName: "" })}>
-				<p class="terrain-layer-block-title">${terrainType.name}${triggerIcon(terrainType)}</p>
-				<p class="terrain-layer-block-height">${f(shape.bottom)} → ${f(shape.top)} (${l("Height")} ${f(shape.height)})</p>
-			</div>
-		`)}`;
+	/**
+	 * @param {{ shape: TerrainShape; terrainType: TerrainType; }[]} shapes
+	 * @param {TokenBlock[]} tokenBlocks
+	 */
+	#renderCompactDisplay(shapes, tokenBlocks) {
+		const format = value => prettyFraction(toSceneUnits(value));
+
+		const rows = [
+			...shapes.map(({ shape, terrainType }) => ({
+				elevation: shape.elevation,
+				content: html`
+					<div class="terrain-layer-block" ${styleTerrainColor(terrainType, { lineWidthCssPropertyName: "" })}>
+						<p class="terrain-layer-block-title">${terrainType.name}${triggerIcon(terrainType)}</p>
+						<p class="terrain-layer-block-height">${format(shape.bottom)} → ${format(shape.top)} (${l("Height")} ${format(shape.height)})</p>
+					</div>
+				`
+			})),
+			...tokenBlocks.map(block => {
+				const name = viewableName(block.token);
+				return {
+					elevation: block.bottom,
+					content: html`
+						<div class="terrain-layer-block token-block"
+							style=${`border-color: ${block.color}; background-color: ${rgba(block.color, 0.32)};`}>
+							<img class="token-avatar" src=${block.token.document.texture.src} alt="">
+							<div>
+								${name ? html`<p class="terrain-layer-block-title">${name}</p>` : nothing}
+								<p class="terrain-layer-block-height">${format(block.bottom)} → ${format(block.top)} (${l("Height")} ${format(block.height)})</p>
+							</div>
+						</div>
+					`
+				};
+			})
+		].sort((first, second) => second.elevation - first.elevation);
+
+		return html`${rows.map(row => row.content)}`;
 	}
+}
+
+/** @typedef {{ token: foundry.canvas.placeables.Token; bottom: number; height: number; top: number; color: string }} TokenBlock */
+
+function tokenHeightOf(tokenDoc) {
+	const gameplayHeight = game.modules.get("lancer-automations")?.api?.laTokenGameplayHeight;
+	return gameplayHeight ? gameplayHeight(tokenDoc) : getTokenHeight(tokenDoc);
+}
+
+function tokenColor(token) {
+	const factions = game.modules.get("token-factions");
+	if (!factions?.active || !factions.api?.getFactionColor) return dispositionColor(token);
+
+	return factions.api.getFactionColor(token.id)?.INT_S ?? dispositionColor(token);
+}
+
+function dispositionColor(token) {
+	const { HOSTILE, FRIENDLY, SECRET } = CONST.TOKEN_DISPOSITIONS;
+	const colors = CONFIG.Canvas.dispositionColors;
+	const byDisposition = { [HOSTILE]: colors.HOSTILE, [FRIENDLY]: colors.FRIENDLY, [SECRET]: colors.SECRET };
+	return Color.from(byDisposition[token.document.disposition] ?? colors.NEUTRAL).toString();
+}
+
+function viewableName(token) {
+	return token._canViewMode?.(token.document.displayName) ? token.document.name : null;
 }
 
 // "#rrggbb" (or a numeric colour) + alpha -> "rgba(...)", so template blocks get THT's translucent fill.
