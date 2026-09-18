@@ -4,12 +4,15 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: write
+
 jobs:
   zip_and_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build
         uses: actions/setup-node@v6
@@ -32,37 +35,9 @@ jobs:
           zip -r release.zip dist/ lang/ presets/ textures/ toolclips/ license.md module.json readme.md
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-          prerelease: false
-
-      - name: Add module.json to release
-        id: upload_module_json
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./module.json
-          asset_name: module.json
-          asset_content_type: application/json
-
-      - name: Add release.zip to release
-        id: upload_release_zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release.zip
-          asset_name: release.zip
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${{ github.ref_name }}" module.json release.zip --draft --title "Release ${{ github.ref_name }}"
 
       - name: Publish to Foundry Package Registry
         if: ${{ !contains(github.ref, 'beta') }}
