@@ -1,4 +1,5 @@
 import { terrainAboveLowerTokens$ } from "../config/settings.mjs";
+import { moduleName, tokenFlags } from "../consts.mjs";
 import { getShapesByBounds } from "../stores/terrain-manager.mjs";
 import { getTerrainType } from "../stores/terrain-types.mjs";
 import { getSpacesUnderToken, toSceneUnits } from "../utils/grid-utils.mjs";
@@ -24,9 +25,10 @@ export function applyTokenTerrainSort(token) {
 		return;
 	}
 
+	const ignoreSetting = !!tokenDoc.getFlag(moduleName, tokenFlags.ignoreTerrainAboveTokens);
 	const rect = artRect(token);
 	const cacheKey = rect
-		? `${terrainVersion}|${elevation}|${Math.round(rect.x)}|${Math.round(rect.y)}|${Math.round(rect.width)}|${Math.round(rect.height)}|${tokenDoc.x}|${tokenDoc.y}`
+		? `${terrainVersion}|${elevation}|${ignoreSetting}|${Math.round(rect.x)}|${Math.round(rect.y)}|${Math.round(rect.width)}|${Math.round(rect.height)}|${tokenDoc.x}|${tokenDoc.y}`
 		: null;
 
 	const cached = sortKeyCache.get(token);
@@ -35,9 +37,14 @@ export function applyTokenTerrainSort(token) {
 		return;
 	}
 
-	const value = Math.max(elevation, tallestBeside(token, rect));
+	const value = Math.max(elevation, tallestOverlapping(token, rect, ignoreSetting));
 	if (cacheKey !== null) sortKeyCache.set(token, { key: cacheKey, value });
 	setMeshElevation(mesh, value);
+}
+
+export function onUpdateTokenTerrainSort(tokenDoc, changed) {
+	if (!changed.flags || !(moduleName in changed.flags)) return;
+	if (tokenDoc.object) applyTokenTerrainSort(tokenDoc.object);
 }
 
 export function refreshAllTokenTerrainSort() {
@@ -64,7 +71,7 @@ function artRect(token) {
 		mesh.height);
 }
 
-function tallestBeside(token, rect) {
+function tallestOverlapping(token, rect, includeUnderToken) {
 	if (!rect) return -Infinity;
 
 	const shapes = getShapesByBounds(rect);
@@ -73,7 +80,9 @@ function tallestBeside(token, rect) {
 	const tokenDoc = token.document;
 	const { width, height, hexagonalShape } = tokenDoc;
 	const { type: gridType, size: gridSize } = canvas.grid;
-	const spaces = getSpacesUnderToken(tokenDoc.x, tokenDoc.y, width, height, gridType, gridSize, hexagonalShape);
+	const spaces = includeUnderToken
+		? []
+		: getSpacesUnderToken(tokenDoc.x, tokenDoc.y, width, height, gridType, gridSize, hexagonalShape);
 
 	let tallest = -Infinity;
 	for (const shape of shapes) {

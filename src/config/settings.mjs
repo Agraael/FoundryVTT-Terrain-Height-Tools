@@ -300,6 +300,8 @@ export function addAboveTilesToSceneConfig(sceneConfig, element) {
 	/** @type {boolean | null | undefined} */
 	const currentValue = sceneConfig.document.getFlag(moduleName, sceneFlags.terrainLayerAboveTiles);
 
+	const perspectiveGraphicsDisabled = !!sceneConfig.document.getFlag(moduleName, sceneFlags.disablePerspectiveGraphics);
+
 	render(html`
 		<div class="form-group">
 			<label>${game.i18n.localize("TERRAINHEIGHTTOOLS.SceneRenderAboveTiles")}</label>
@@ -314,6 +316,18 @@ export function addAboveTilesToSceneConfig(sceneConfig, element) {
 					${game.i18n.localize("TERRAINHEIGHTTOOLS.SceneRenderAboveTilesChoice.BelowTiles")}
 				</option>
 			</select>
+		</div>
+
+		<div class="form-group">
+			<label>Disable perspective graphics</label>
+			<div class="form-fields">
+				<input
+					type="checkbox"
+					name=${`flags.${moduleName}.${sceneFlags.disablePerspectiveGraphics}`}
+					?checked=${perspectiveGraphicsDisabled}
+				/>
+			</div>
+			<p class="hint">Turns off drop shading and Tanaka contours on this scene.</p>
 		</div>
 	`, element.querySelector(".tab[data-tab='grid']"));
 }
@@ -338,4 +352,18 @@ export function addIgnoreAutoElevationToTokenConfig(tokenConfig, element) {
 			<p class="hint">${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreAutoElevation.Hint")}</p>
 		</div>
 	`, element.querySelector('.tab[data-tab="identity"]'));
+}
+
+export function addIgnoreTerrainAboveTokensToTokenConfig(tokenConfig, element) {
+	const currentValue = tokenConfig.token.getFlag(moduleName, tokenFlags.ignoreTerrainAboveTokens) ?? false;
+
+	render(html`
+		<div class="form-group">
+			<label>${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreTerrainAboveTokens.Name")}</label>
+			<div class="form-fields">
+				<input type="checkbox" name="flags.${moduleName}.${tokenFlags.ignoreTerrainAboveTokens}" ?checked=${currentValue} />
+			</div>
+			<p class="hint">${game.i18n.localize("TERRAINHEIGHTTOOLS.IgnoreTerrainAboveTokens.Hint")}</p>
+		</div>
+	`, element.querySelector('.tab[data-tab="appearance"]'));
 }

@@ -4,10 +4,10 @@ import { initAutoWallEdges } from "./auto-wall-edges.mjs";
 import { TokenLineOfSightToolbar } from "./applications/token-line-of-sight-toolbar.mjs";
 import { initSceneRegionAutomation } from "./automation/scene-regions.mjs";
 import * as autoTokenElevation from "./automation/token-elevation.mjs";
-import { applyTokenTerrainSort } from "./automation/token-terrain-sort.mjs";
+import { applyTokenTerrainSort, onUpdateTokenTerrainSort } from "./automation/token-terrain-sort.mjs";
 import { registerSceneControls } from "./config/controls.mjs";
 import { registerKeybindings } from "./config/keybindings.mjs";
-import { addAboveTilesToSceneConfig, addIgnoreAutoElevationToTokenConfig, registerSettings } from "./config/settings.mjs";
+import { addAboveTilesToSceneConfig, addIgnoreAutoElevationToTokenConfig, addIgnoreTerrainAboveTokensToTokenConfig, registerSettings } from "./config/settings.mjs";
 import { heightMapProviderId, moduleName, socketFuncs, socketName, tools } from "./consts.mjs";
 import { heightMap } from "./geometry/height-map.mjs";
 import { LineOfSightRulerLayer } from "./layers/line-of-sight-ruler-layer.mjs";
@@ -46,6 +46,8 @@ function init() {
 	});
 	Hooks.on("renderSceneConfig", addAboveTilesToSceneConfig);
 	Hooks.on("renderTokenConfig", addIgnoreAutoElevationToTokenConfig);
+	Hooks.on("renderTokenConfig", addIgnoreTerrainAboveTokensToTokenConfig);
+	Hooks.on("renderPrototypeTokenConfig", addIgnoreTerrainAboveTokensToTokenConfig);
 
 	Hooks.on("updateScene", canvasStore.onUpdateScene);
 	Hooks.on("canvasReady", canvasStore.onCanvasReady);
@@ -54,6 +56,7 @@ function init() {
 	Hooks.on("preCreateToken", autoTokenElevation.onTokenPreCreate);
 
 	Hooks.on("refreshToken", applyTokenTerrainSort);
+	Hooks.on("updateToken", onUpdateTokenTerrainSort);
 
 	registerKeybindings();
 

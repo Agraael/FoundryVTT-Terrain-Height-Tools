@@ -13,6 +13,9 @@ export const invisibleTerrainTypes$ = signal(new Set());
 /** @type {Signal<boolean | null>} */
 export const sceneRenderAboveTilesChoice$ = signal(null);
 
+/** @type {Signal<boolean>} */
+export const scenePerspectiveGraphicsDisabled$ = signal(false);
+
 export function onUpdateScene(scene) {
 	// A scene other than the one the current user is on was updated
 	if (!canvas.scene || scene.id !== canvas.scene.id) return;
@@ -23,6 +26,7 @@ export function onCanvasReady({ scene }) {
 	batch(() => {
 		invisibleTerrainTypes$.value = new Set(scene.getFlag(moduleName, sceneFlags.invisibleTerrainTypes) ?? []);
 		sceneRenderAboveTilesChoice$.value = scene.getFlag(moduleName, sceneFlags.terrainLayerAboveTiles) ?? null;
+		scenePerspectiveGraphicsDisabled$.value = !!scene.getFlag(moduleName, sceneFlags.disablePerspectiveGraphics);
 		canvasReady$.value = true;
 	});
 }
@@ -32,5 +36,6 @@ export function onCanvasTearDown() {
 		canvasReady$.value = false;
 		invisibleTerrainTypes$.value = new Set();
 		sceneRenderAboveTilesChoice$.value = null;
+		scenePerspectiveGraphicsDisabled$.value = false;
 	});
 }

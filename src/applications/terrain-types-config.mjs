@@ -358,6 +358,16 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 				${rangePicker({ name: `${index}.lineFadeOpacity`, value: terrainType.lineFadeOpacity, min: 0, max: 1, step: 0.05 })}
 			</div>
 		</div>
+
+		<hr/>
+
+		<div class="form-group">
+			<label for="terrainType${index}_disablePerspectiveGraphics">Disable perspective graphics</label>
+			<div class="form-fields">
+				<input id="terrainType${index}_disablePerspectiveGraphics" type="checkbox" name="${index}.disablePerspectiveGraphics" .checked=${!!terrainType.disablePerspectiveGraphics}>
+			</div>
+			<p class="hint">Leaves this type out of the drop shading and Tanaka contours.</p>
+		</div>
 	`;
 
 	/** @type {UiPartRenderer} */

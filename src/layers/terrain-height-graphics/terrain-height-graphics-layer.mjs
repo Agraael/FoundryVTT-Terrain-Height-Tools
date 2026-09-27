@@ -3,10 +3,10 @@
 /** @import { Signal } from "@preact/signals-core" */
 import { computed, signal, untracked } from "@preact/signals-core";
 import { showTerrainHeightOnTokenLayer$, showZonesAboveNonZones$, terrainAboveLowerTokens$, terrainHeightLayerVisibilityRadius$, terrainLayerAboveTilesDefault$, useFractionsForLabels$ } from "../../config/settings.mjs";
-import { heightMapProviderId, terrainHeightEditorControlName, tools } from "../../consts.mjs";
+import { heightMapProviderId, moduleName, sceneFlags, terrainHeightEditorControlName, tools } from "../../consts.mjs";
 import { refreshAllTokenTerrainSort } from "../../automation/token-terrain-sort.mjs";
 import { refreshElevationMarks } from "../../experimental/terrain-elevation-marks.mjs";
-import { cursorWorldPosition$, invisibleTerrainTypes$, sceneRenderAboveTilesChoice$ } from "../../stores/canvas.mjs";
+import { cursorWorldPosition$, invisibleTerrainTypes$, scenePerspectiveGraphicsDisabled$, sceneRenderAboveTilesChoice$ } from "../../stores/canvas.mjs";
 import { activeControl$, activeTool$ } from "../../stores/scene-controls.mjs";
 import { allTerrainShapes$ } from "../../stores/terrain-manager.mjs";
 import { terrainTypesWithPreview$, terrainTypesWithPreviewMap$ } from "../../stores/terrain-types.mjs";
@@ -115,6 +115,13 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 		abortableSubscribe(terrainAboveLowerTokens$, () => {
 			refreshAllTokenTerrainSort();
 			canvas.primary.sortChildren();
+		}, tearDownSignal);
+
+		let perspectiveGraphicsDisabled = !!canvas.scene?.getFlag(moduleName, sceneFlags.disablePerspectiveGraphics);
+		abortableSubscribe(scenePerspectiveGraphicsDisabled$, disabled => {
+			if (disabled === perspectiveGraphicsDisabled) return;
+			perspectiveGraphicsDisabled = disabled;
+			this._redrawAll();
 		}, tearDownSignal);
 
 		allTerrainShapes$.subscribe({ change: () => refreshAllTokenTerrainSort() }, { signal: tearDownSignal });

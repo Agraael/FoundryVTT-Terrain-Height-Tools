@@ -3,7 +3,7 @@
  *
  * When a terrain type has `autoGenerateWalls.enabled`, every shape of that type
  * gets `foundry.canvas.edges.Edge` instances installed in `canvas.edges` along
- * its boundary. These are runtime-only — never persisted, never visible in the
+ * its boundary. These are runtime-only, never persisted and never visible in the
  * wall layer. Mirrors the lancer-automations tokenBlocksVision pattern.
  */
 import { wallHeightModuleName } from "./consts.mjs";
@@ -15,7 +15,7 @@ const EDGE_PREFIX = "tht-auto-edge";
 
 let _initialized = false;
 
-/** Stable identity hash for a shape — vertices are frozen so this is reliable. */
+/** Stable identity hash for a shape. Vertices are frozen, so this is reliable. */
 function _shapeKey(shape) {
 	const verts = shape.polygon.vertices?.map?.(v => `${v.x},${v.y}`).join(";") ?? "";
 	return `${shape.elevation}|${shape.height}|${verts}`;

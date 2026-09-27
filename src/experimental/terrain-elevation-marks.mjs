@@ -2,7 +2,7 @@
 /** @import { LineSegment } from "../geometry/line-segment.mjs" */
 /** @import { TerrainShapeGraphic } from "../layers/terrain-height-graphics/terrain-shape-graphic.mjs" */
 import { union as polygonUnion } from "polygon-clipping";
-import { moduleName } from "../consts.mjs";
+import { moduleName, sceneFlags } from "../consts.mjs";
 import { allTerrainShapes$ } from "../stores/terrain-manager.mjs";
 import { terrainTypesWithPreviewMap$ } from "../stores/terrain-types.mjs";
 
@@ -193,12 +193,20 @@ function getSunDirection() {
 	return { x: -Math.sin(radians), y: Math.cos(radians) };
 }
 
+function isDisabledOnScene() {
+	return !!canvas.scene?.getFlag(moduleName, sceneFlags.disablePerspectiveGraphics);
+}
+
 export function isDropBandEnabled() {
-	return !!game.settings.get(moduleName, settingNames.dropBand);
+	return !!game.settings.get(moduleName, settingNames.dropBand) && !isDisabledOnScene();
 }
 
 export function isTanakaEnabled() {
-	return !!game.settings.get(moduleName, settingNames.tanaka);
+	return !!game.settings.get(moduleName, settingNames.tanaka) && !isDisabledOnScene();
+}
+
+export function usesPerspectiveGraphics(terrainType) {
+	return !terrainType?.disablePerspectiveGraphics;
 }
 
 /**
@@ -377,7 +385,9 @@ export class ShapeElevationMarks {
 				let inset = 0;
 				let border = true;
 
-				if (taller.highest > shape.top) {
+				const tallerType = terrainTypesWithPreviewMap$.value.get(taller.shape?.terrainTypeId);
+
+				if (taller.highest > shape.top && usesPerspectiveGraphics(tallerType)) {
 					// The same width the neighbour lays on this edge, so the step clears it exactly
 					const lean = Math.min(1, Math.abs((normalX * sunX) + (normalY * sunY)));
 					const width = widest * (0.5 + (0.5 * lean)) * (Math.min(3, taller.highest - shape.top) / 3);
@@ -486,6 +496,7 @@ export class ShapeElevationMarks {
 	/** Shades the ground beside a drop, reaching further out the further it falls. Paints nothing on the terrain. */
 	#drawDropBand(segments) {
 		if (!isDropBandEnabled() || segments.length === 0) return;
+		if (!usesPerspectiveGraphics(this.#graphic.terrainType)) return;
 
 		const reachPerUnitAtBase = game.settings.get(moduleName, settingNames.dropBandReach) ?? 0;
 		const reachPerUnit = reachPerUnitAtBase * (canvas.grid.size / baseGridSize);
@@ -591,6 +602,7 @@ export class ShapeElevationMarks {
 	 */
 	#drawTanaka(segments) {
 		if (!isTanakaEnabled() || segments.length === 0) return;
+		if (!usesPerspectiveGraphics(this.#graphic.terrainType)) return;
 
 		const widestAtBase = game.settings.get(moduleName, settingNames.tanakaWidth) ?? 0;
 		const widest = widestAtBase * (canvas.grid.size / baseGridSize);

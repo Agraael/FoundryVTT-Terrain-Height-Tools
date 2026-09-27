@@ -27,6 +27,7 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {boolean} usesHeight
  * @property {boolean} isSolid
  * @property {boolean} isAlwaysVisible
+ * @property {boolean} disablePerspectiveGraphics
  * @property {boolean} textRotation
  * @property {LINE_TYPES} lineType
  * @property {number} lineWidth
@@ -133,6 +134,7 @@ export function createDefaultTerrainType(id = undefined) {
 		usesHeight: true,
 		isSolid: true,
 		isAlwaysVisible: false,
+		disablePerspectiveGraphics: false,
 		textRotation: false,
 		lineType: LINE_TYPES.SOLID,
 		lineWidth: 4,

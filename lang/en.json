@@ -128,6 +128,8 @@
 		"HoverTerrainToShowDetails": "Hover terrain to show details",
 		"IgnoreAutoElevation.Name": "Ignore THT Auto Elevation",
 		"IgnoreAutoElevation.Hint": "If enabled, this token will be excluded from automatic terrain elevation adjustments.",
+		"IgnoreTerrainAboveTokens.Name": "Ignore Terrain Above Lower Tokens",
+		"IgnoreTerrainAboveTokens.Hint": "If enabled, this token is excluded from the 'Terrain Above Lower Tokens' setting and always draws on top of terrain.",
 		"ImportCombine": "Import (Combine with Existing)",
 		"ImportReplace": "Import (Replace Existing)",
 		"ImportTerrainTypes": "Import JSON",

@@ -81,12 +81,14 @@ export const keybindings = /** @type {const} */ ({
 export const sceneFlags = /** @type {const} */ ({
 	heightData: "heightData",
 	invisibleTerrainTypes: "invisibleTerrainTypes",
-	terrainLayerAboveTiles: "terrainLayerAboveTiles"
+	terrainLayerAboveTiles: "terrainLayerAboveTiles",
+	disablePerspectiveGraphics: "disablePerspectiveGraphics"
 });
 
 /** @enum {keyof typeof tokenFlags} */
 export const tokenFlags = /** @type {const} */ ({
-	ignoreAutoElevation: "ignoreAutoElevation"
+	ignoreAutoElevation: "ignoreAutoElevation",
+	ignoreTerrainAboveTokens: "ignoreTerrainAboveTokens"
 });
 
 /** @enum {keyof typeof regionFlags} */
