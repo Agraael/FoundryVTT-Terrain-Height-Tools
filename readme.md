@@ -18,6 +18,8 @@ Fork of [Wibble199's Terrain Height Tools](https://github.com/Wibble199/FoundryV
 - **Tokens in the terrain stack viewer**: shown under the cursor with portrait, elevation and height.
 - **Extra API**: token-in-shape and trigger-match helpers.
 
+<p align="center"><img src="docs/img/elevation-cues.gif" width="70%"/></p>
+
 ---
 
 ## Installation
