@@ -29,8 +29,7 @@ export function isActiveGm() {
 export function passesTargetFilter(tokenDoc, filter) {
 	if (filter?.startsWith?.("TEAM:")) {
 		const wantedTeamId = filter.slice("TEAM:".length);
-		const tokenTeamId = tokenDoc.flags?.["token-factions"]?.team
-			?? tokenDoc.actor?.prototypeToken?.flags?.["token-factions"]?.team;
+		const tokenTeamId = game.modules.get("token-factions")?.api?.getTeam?.(tokenDoc);
 		return tokenTeamId === wantedTeamId;
 	}
 	if (filter?.startsWith?.("ACTORTYPE:")) {

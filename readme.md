@@ -11,6 +11,7 @@ Fork of [Wibble199's Terrain Height Tools](https://github.com/Wibble199/FoundryV
 ## What this fork adds
 
 - **Terrain Triggers**: per-terrain actions on enter/leave/move. Macro, JS, or status effect. See [Triggers](#triggers).
+- **Auto Walls**: shapes block along their outline like walls, no wall documents. See [Auto Walls](#auto-walls).
 - **Tanaka contours** (experimental): each drop drawn as a highlight facing the light, a shadow facing away.
 - **Drop shading** (experimental): shades the ground beside terrain, further the further it falls.
 - **Terrain above lower tokens**: a token under a taller block is drawn beneath it. Beside it, still on top.
@@ -42,6 +43,7 @@ https://github.com/Agraael/FoundryVTT-Terrain-Height-Tools/releases/latest/downl
 |--------|--------------|
 | [Lancer Automations](https://github.com/Agraael/lancer-automations) | Trigger code can call Lancer flows like `triggerDangerousZoneFlow` |
 | [Token Factions](https://github.com/Agraael/foundryvtt-token-factions) | Lets triggers target a specific team instead of disposition |
+| [Wall Height](https://foundryvtt.com/packages/wall-height) | Auto walls span the shape's bottom to top |
 | [_CodeMirror](https://github.com/League-of-Foundry-Developers/codemirror-lib) | Syntax highlighting in the inline JS trigger editor |
 
 ---
@@ -86,6 +88,15 @@ Paint a Dangerous Fire shape. On the terrain type, add a trigger:
 `terrain-height-tools.enterLeaveTerrain` fires for every match with `{ token, shape, terrainType, trigger, hasEntered, isPreview, reason }`. Useful for reacting from another module without configuring a trigger.
 
 The action only runs on the active GM client. The hook itself fires for everyone.
+
+---
+
+## Auto Walls
+
+An **Auto Walls** tab on each terrain type. Shapes of that type block movement, light, sight or sound along their outline. Runtime only, nothing saved to the scene.
+
+- **Set Wall Height flags**: edges span the shape's bottom to top. Needs Wall Height.
+- **LA line of sight only**: blocks Lancer line of sight only, using the Sight value. Needs Lancer Automations.
 
 ---
 

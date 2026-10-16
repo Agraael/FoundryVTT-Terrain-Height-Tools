@@ -28,11 +28,9 @@ const { FormDataExtended } = foundry.applications.ux;
 /** @type {(k: string) => string} */
 const l = k => game.i18n.localize(k);
 
-/** Returns token-factions teams when the module is active and Advanced Factions colouring is on. */
+/** Returns token-factions teams when the module is active and its advanced teams are on. */
 function getAdvancedFactionTeams() {
-	if (!game.modules.get("token-factions")?.active) return [];
-	if (game.settings.get("token-factions", "color-from") !== "advanced-factions") return [];
-	return game.settings.get("token-factions", "team-setup") || [];
+	return game.modules.get("token-factions")?.api?.getTeams?.() ?? [];
 }
 
 export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
