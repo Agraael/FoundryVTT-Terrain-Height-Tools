@@ -7,7 +7,7 @@ import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { when } from "lit/directives/when.js";
-import { moduleName, settingNames, triggerActionTypes, triggerElevationRules, triggerEventModes, triggerTargetTokens, wallHeightModuleName } from "../consts.mjs";
+import { freeClimbModes, moduleName, settingNames, triggerActionTypes, triggerElevationRules, triggerEventModes, triggerTargetTokens, wallHeightModuleName } from "../consts.mjs";
 import { LINE_TYPES } from "../shared/consts.mjs";
 import { selectOptions } from "../shared/directives/select-options.mjs";
 import "../shared/elements/color-animation-editor/color-animation-editor.mjs";
@@ -923,19 +923,23 @@ export class TerrainTypesConfig extends LitApplicationMixin(ApplicationV2) {
 		</div>
 
 		<div class="form-group">
-			<label for="terrainType${index}_noClimbingCost">No Climbing Cost (Lancer Automations)</label>
+			<label for="terrainType${index}_noClimbingCost">Free Going Up (Lancer Automations)</label>
 			<div class="form-fields">
-				<input id="terrainType${index}_noClimbingCost" type="checkbox" name="${index}.noClimbingCost" .checked=${terrainType.noClimbingCost} ?disabled=${!game.modules.get("lancer-automations")?.active}>
+				<select id="terrainType${index}_noClimbingCost" name="${index}.noClimbingCost" ?disabled=${!game.modules.get("lancer-automations")?.active}>
+					${selectOptions(freeClimbModes, { selected: terrainType.noClimbingCost, localize: false })}
+				</select>
 			</div>
-			<p class="hint">Climbing onto this terrain skips the climb cost; the step costs just the move.</p>
+			<p class="hint">Climbing is the extra cost of the climbing rule. Vertical is the height itself.</p>
 		</div>
 
 		<div class="form-group">
-			<label for="terrainType${index}_noDescentCost">No Descent Cost (Lancer Automations)</label>
+			<label for="terrainType${index}_noDescentCost">Free Going Down (Lancer Automations)</label>
 			<div class="form-fields">
-				<input id="terrainType${index}_noDescentCost" type="checkbox" name="${index}.noDescentCost" .checked=${terrainType.noDescentCost} ?disabled=${!game.modules.get("lancer-automations")?.active}>
+				<select id="terrainType${index}_noDescentCost" name="${index}.noDescentCost" ?disabled=${!game.modules.get("lancer-automations")?.active}>
+					${selectOptions(freeClimbModes, { selected: terrainType.noDescentCost, localize: false })}
+				</select>
 			</div>
-			<p class="hint">Dropping down onto this terrain skips the climb cost; the step costs just the move.</p>
+			<p class="hint">Climbing is the extra cost of the climbing rule. Vertical is the height itself.</p>
 		</div>
 	`;
 

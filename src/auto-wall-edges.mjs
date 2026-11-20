@@ -85,7 +85,7 @@ function _rebuildAll() {
 
 function _refreshPerception() {
 	canvas?.perception?.update?.(
-		{ refreshEdges: true, refreshVision: true, refreshLighting: true },
+		{ refreshEdges: true, refreshVision: true, refreshLighting: true, initializeVision: true, initializeLighting: true, initializeSounds: true },
 		true
 	);
 }

@@ -174,3 +174,10 @@ export const triggerTargetTokens = /** @type {const} */ ({
 	SECRET: "TERRAINHEIGHTTOOLS.Trigger.Target.Secret",
 	PLAYER_OWNED: "TERRAINHEIGHTTOOLS.Trigger.Target.PlayerOwned"
 });
+
+/** @enum {keyof typeof freeClimbModes} */
+export const freeClimbModes = /** @type {const} */ ({
+	none: "No",
+	climbing: "Climbing",
+	climbingVertical: "Climbing + Vertical"
+});

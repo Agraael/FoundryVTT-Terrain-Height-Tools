@@ -220,6 +220,7 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 			providerGraphics.delete(shape);
 			graphic._destroy();
 			canvas.primary.removeChild(graphic);
+			graphic.destroy({ children: true });
 		}
 
 		// One paint stroke fires remove then add, and the add refreshes synchronously
@@ -243,6 +244,7 @@ export class TerrainHeightGraphicsLayer extends CanvasLayer {
 		for (const graphic of this.#allShapeGraphics) {
 			graphic._destroy();
 			canvas.primary.removeChild(graphic);
+			graphic.destroy({ children: true });
 		}
 		this.#shapeGraphics.clear();
 	}

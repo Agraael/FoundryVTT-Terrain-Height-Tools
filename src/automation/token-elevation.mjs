@@ -3,7 +3,7 @@ import { tokenElevationChange$, tokenElevationChangeInsertClimbWaypoints$ } from
 import { moduleName, tokenFlags } from "../consts.mjs";
 import { heightMap } from "../geometry/height-map.mjs";
 import { getTerrainType } from "../stores/terrain-types.mjs";
-import { getSpacesUnderToken, toSceneUnits } from "../utils/grid-utils.mjs";
+import { fromSceneUnits, getSpacesUnderToken, toSceneUnits } from "../utils/grid-utils.mjs";
 import { getTokenHeight } from "../utils/token-utils.mjs";
 
 /**
@@ -57,10 +57,10 @@ export function tokenGetDragWaypointPositionWrapper(wrapped, current, changes, o
 	const currentTerrainTop = current[thtTerrainTop]
 		?? getTopMostTerrainUnderToken(
 			{ x: initialX, y: initalY, width, height, shape },
-			{ terrainFilter: s => s.bottom <= current.elevation + tokenZHeight }
+			{ terrainFilter: terrainShape => terrainShape.bottom <= fromSceneUnits(current.elevation) + tokenZHeight }
 		);
 
-	const currentElevationAboveTerrain = current.elevation - currentTerrainTop;
+	const currentElevationAboveTerrain = fromSceneUnits(current.elevation) - currentTerrainTop;
 
 	// Find the best suitable space for the token, attempting to the keep the same relative height above terrain
 	const nextTerrainTop = getTopMostTerrainUnderToken(
@@ -148,10 +148,12 @@ export function tokenDocumentGetCompleteMovementPathWrapper(wrapped, waypoints) 
 	// Top of the terrain under the token in the initial waypoint.
 	// We ignore any terrain that is is entirely above the token, i.e. if the token is in a gap beneath this terrain
 	// This needs to match the logic in the tokenGetDragWaypointPositionWrapper
+	const startElevation = fromSceneUnits(movementPath[0].elevation);
 	let previousTerrainTop = getTopMostTerrainUnderToken(
 		movementPath[0],
-		{ terrainFilter: s => s.bottom <= movementPath[0].elevation + tokenZHeight }
+		{ terrainFilter: terrainShape => terrainShape.bottom <= startElevation + tokenZHeight }
 	);
+	const elevationAboveTerrain = startElevation - previousTerrainTop;
 
 	for (let i = 1; i < movementPath.length; i++) {
 		if (!automaticElevationMovementTypes.includes(movementPath[i].action)) continue;
@@ -162,13 +164,13 @@ export function tokenDocumentGetCompleteMovementPathWrapper(wrapped, waypoints) 
 			movementPath[i],
 			{ gapSearch: {
 				currentTerrainTop: previousTerrainTop,
-				currentElevationAboveTerrain: movementPath[i].elevation - previousTerrainTop,
+				currentElevationAboveTerrain: elevationAboveTerrain,
 				tokenZHeight
 			} }
 		);
 
 		// Update the elevation of this waypoint
-		movementPath[i].elevation = toSceneUnits(thisTerrainTop);
+		movementPath[i].elevation = toSceneUnits(thisTerrainTop + elevationAboveTerrain);
 
 		if (thisTerrainTop !== previousTerrainTop) {
 			Object.assign(movementPath[i - 1], {
@@ -176,7 +178,6 @@ export function tokenDocumentGetCompleteMovementPathWrapper(wrapped, waypoints) 
 			});
 			Object.assign(movementPath[i], {
 				action: "climb",
-				elevation: thisTerrainTop,
 				intermediate: false
 			});
 		}

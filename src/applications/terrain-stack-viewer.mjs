@@ -111,7 +111,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 		(
 			activeControl$.value === "tokens" &&
 			showTerrainStackViewerOnTokenLayer$.value &&
-			(this.#terrainShapesUnderMouse$.value.length > 0 || this.#templatesUnderMouse$.value.length > 0)
+			(this.#terrainShapesUnderMouse$.value.length > 0 || this.#templatesUnderMouse$.value.length > 0 || this.#tokensUnderMouse$.value.some(isSolidToken))
 		));
 
 	constructor() {
@@ -175,7 +175,7 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 			return html`<p style="text-align: center;">${l("TERRAINHEIGHTTOOLS.HoverTerrainToShowDetails")}</p>`;
 		}
 
-		const tokenBlocks = tokens.map(token => {
+		const tokenBlocks = tokens.filter(token => !isSolidToken(token)).map(token => {
 			const bottom = fromSceneUnits(token.document.elevation);
 			const height = fromSceneUnits(tokenHeightOf(token.document));
 			return { token, bottom, height, top: bottom + height, color: tokenColor(token) };
@@ -215,6 +215,31 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 					textColor: "#ffffff",
 					textColorAnimation: null,
 					triggers: t.hasTrigger ? [{ enabled: true }] : []
+				}
+			});
+		}
+		for (const token of tokens.filter(isSolidToken)) {
+			const bottom = fromSceneUnits(token.document.elevation);
+			const height = fromSceneUnits(tokenHeightOf(token.document));
+			const color = tokenColor(token);
+			const name = viewableName(token);
+			nonZoneShapes.push({
+				shape: { top: bottom + height, elevation: bottom, bottom, height },
+				terrainType: {
+					name: name ? `${name} (${l("TERRAINHEIGHTTOOLS.SolidToken")})` : l("TERRAINHEIGHTTOOLS.SolidToken"),
+					usesHeight: true,
+					lineType: LINE_TYPES.SOLID,
+					lineWidth: 4,
+					lineColor: color,
+					lineOpacity: 1,
+					lineColorAnimation: null,
+					fillType: 1,
+					fillColor: color,
+					fillOpacity: 0.32,
+					fillColorAnimation: null,
+					textColor: "#ffffff",
+					textColorAnimation: null,
+					triggers: []
 				}
 			});
 		}
@@ -420,6 +445,10 @@ export class TerrainStackViewer extends LitApplicationMixin(ApplicationV2) {
 function tokenHeightOf(tokenDoc) {
 	const gameplayHeight = game.modules.get("lancer-automations")?.api?.laTokenGameplayHeight;
 	return gameplayHeight ? gameplayHeight(tokenDoc) : getTokenHeight(tokenDoc);
+}
+
+function isSolidToken(token) {
+	return !!game.modules.get("lancer-automations")?.api?.isSolidToken?.(token.document);
 }
 
 function tokenColor(token) {

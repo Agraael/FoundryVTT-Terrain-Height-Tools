@@ -313,7 +313,6 @@ export class PolygonGraphic extends PIXI.Container {
 			&& style.fillType === CONST.DRAWING_FILL_TYPES.PATTERN
 			&& !!style.fillTexture
 			&& !!style.fillTextureOffsetAnimation
-			&& style.fillTextureOffsetAnimation.x !== 0
-			&& style.fillTextureOffsetAnimation.y !== 0;
+			&& (style.fillTextureOffsetAnimation.x !== 0 || style.fillTextureOffsetAnimation.y !== 0);
 	}
 }

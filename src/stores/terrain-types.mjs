@@ -62,8 +62,8 @@ import { LINE_TYPES } from "../shared/consts.mjs";
  * @property {number} textShadowOpacity
  * @property {number | null} defaultHeight
  * @property {number | null} defaultElevation
- * @property {boolean} noClimbingCost
- * @property {boolean} noDescentCost
+ * @property {"none" | "climbing" | "climbingVertical"} noClimbingCost
+ * @property {"none" | "climbing" | "climbingVertical"} noDescentCost
  * @property {TerrainTrigger[]} triggers
  * @property {AutoGenerateWallsConfig} autoGenerateWalls
  * @property {any[]} regionBehaviors
@@ -109,8 +109,16 @@ export function loadTerrainTypes() {
 		.map(t => Object.freeze({
 			...createDefaultTerrainType(t.id),
 			...t,
+			noClimbingCost: _migrateFreeClimb(t.noClimbingCost),
+			noDescentCost: _migrateFreeClimb(t.noDescentCost),
 			triggers: (t.triggers ?? []).map(_migrateTrigger)
 		})));
+}
+
+function _migrateFreeClimb(value) {
+	if (value === true) return "climbingVertical";
+	if (typeof value !== "string") return "none";
+	return value;
 }
 
 function _migrateTrigger(trigger) {
@@ -169,8 +177,8 @@ export function createDefaultTerrainType(id = undefined) {
 		textShadowOpacity: 1,
 		defaultHeight: null,
 		defaultElevation: null,
-		noClimbingCost: false,
-		noDescentCost: false,
+		noClimbingCost: "none",
+		noDescentCost: "none",
 		triggers: [],
 		autoGenerateWalls: createDefaultAutoGenerateWalls(),
 		regionBehaviors: [],

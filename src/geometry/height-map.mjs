@@ -386,6 +386,9 @@ export class HeightMap extends TerrainProvider {
 						)
 				});
 
+				/** @type {{ polygons: [number, number][][][]; terrainTypeId: string; top: number; bottom: number; }[]} */
+				const remainders = [];
+
 				for (const existingShape of potentialOverlaps) {
 					const existingShapePath = existingShape.toGeoJsonPolygon();
 
@@ -405,18 +408,21 @@ export class HeightMap extends TerrainProvider {
 					const usesHeight = getTerrainType(existingShape.terrainTypeId)?.usesHeight;
 					if (usesHeight && existingShape.top > top) {
 						// bottom of the shape is now the top of the eraser - everything below is erased
-						this.#addShapeAndMergeWithAdjacent(intersectionResult, existingShape.terrainTypeId, existingShape.top, top);
+						remainders.push({ polygons: intersectionResult, terrainTypeId: existingShape.terrainTypeId, top: existingShape.top, bottom: top });
 					}
 					if (usesHeight && existingShape.bottom < bottom) {
 						// top of the shape is now the bottom of the eraser - everything above is erased
-						this.#addShapeAndMergeWithAdjacent(intersectionResult, existingShape.terrainTypeId, bottom, existingShape.bottom);
+						remainders.push({ polygons: intersectionResult, terrainTypeId: existingShape.terrainTypeId, top: bottom, bottom: existingShape.bottom });
 					}
 
 					// Existing difference with erase = areas of existing shape that are NOT erased.
 					// These shapes need to be added back on
 					const unchangedExistingShapeResult = polygonDifference(existingShapePath, eraseShapePath);
-					this.#addShapeAndMergeWithAdjacent(unchangedExistingShapeResult, existingShape.terrainTypeId, existingShape.top, existingShape.bottom);
+					remainders.push({ polygons: unchangedExistingShapeResult, terrainTypeId: existingShape.terrainTypeId, top: existingShape.top, bottom: existingShape.bottom });
 				}
+
+				for (const remainder of remainders)
+					this.#addShapeAndMergeWithAdjacent(remainder.polygons, remainder.terrainTypeId, remainder.top, remainder.bottom);
 			}
 
 			debug(`eraseRegion took ${Math.round(performance.now() - startTimestamp)}ms`);
